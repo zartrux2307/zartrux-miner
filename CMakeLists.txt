@@ -30,7 +30,7 @@ endif()
 
 set(CMAKE_TOOLCHAIN_FILE "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
 set(VCPKG_TARGET_TRIPLET "x64-windows" CACHE STRING "Triplet de vcpkg")
-
+set(CMAKE_WINDOWS_KITS_10_DIR "C:/Program Files (x86)/Windows Kits/10")
 list(APPEND CMAKE_PREFIX_PATH
     "C:/Qt/6.9.0/msvc2022_64"
     "C:/Python313"
@@ -58,6 +58,8 @@ include_directories(
     C:/vcpkg/installed/x64-windows/include
      ${VCPKG_INSTALL_PATH}/include
      ${RANDOMX_INCLUDE_DIRS}
+   "${CMAKE_WINDOWS_KITS_10_DIR}/Include/10.0.18362.0/um"
+    "${CMAKE_WINDOWS_KITS_10_DIR}/Include/10.0.18362.0/shared"
 )
 
 # Subdirectorios
@@ -93,13 +95,12 @@ target_link_libraries(zartrux-miner PRIVATE
     prometheus-cpp::util
     prometheus-cpp::pull 
     nlohmann_json::nlohmann_json
-    fmt::fmt
+       fmt::fmt
     cpr::cpr
-  ${RANDOMX_LIBRARIES}
+    randomx
     libzmq
     yaml-cpp::yaml-cpp
 )
-
 if(WIN32)
     target_link_libraries(zartrux-miner PRIVATE Pdh.lib)
 endif()
