@@ -106,7 +106,7 @@ if(WIN32)
 endif()
 
 # Instalación ejecutable y headers randomx
-install(TARGETS zartrux-miner randomx  # AÑADIR randomx aquí
+install(TARGETS zartrux-miner
     EXPORT zartrux_targets
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     BUNDLE  DESTINATION ${CMAKE_INSTALL_BINDIR}
