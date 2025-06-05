@@ -1,4 +1,4 @@
-zartrux-miner/
+zartrux-miner/1
 ├── CMakeLists.txt                      # Archivo raíz de compilación del proyecto
 ├── LICENSE                             # Licencia de uso
 ├── README.md                           # Documentación principal del sistema
