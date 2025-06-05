@@ -52,6 +52,7 @@ if(NOT prometheus-cpp_FOUND)
 endif()
 
 include_directories(
+  include_directories(␊
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/src/randomxzar/src
     ${prometheus-cpp_INCLUDE_DIRS}
@@ -62,6 +63,10 @@ include_directories(
     "${CMAKE_WINDOWS_KITS_10_DIR}/Include/10.0.18362.0/shared"
 )
 
+# Ensure RandomX sources are present
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/randomxzar/CMakeLists.txt")
+    message(FATAL_ERROR "RandomX sources not found in src/randomxzar. Run 'git submodule update --init --recursive' or clone https://github.com/tevador/RandomX.git into src/randomxzar")
+endif()
 # Subdirectorios
 add_subdirectory(src/arch)
 add_subdirectory(src/core)
