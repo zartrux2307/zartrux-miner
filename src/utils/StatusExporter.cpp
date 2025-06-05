@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <chrono>
 #include <ctime>
+#include <filesystem>
 #include "Logger.h"
 #include "config_manager.h"
 
@@ -56,6 +57,31 @@ void StatusExporter::exportStatus(const MinerStatus& status) {
         Logger::logError("StatusExporter", std::string("Error exporting status: ") + e.what());
     }
 }
+
+void StatusExporter::exportStatusJSON(size_t cpuQueue, size_t iaQueue,
+                                      size_t validNonces,
+                                      size_t processedCount) {
+    std::lock_guard<std::mutex> lock(status_mutex);
+    try {
+        nlohmann::json j;
+        j["cpu_queue"] = cpuQueue;
+        j["ia_queue"] = iaQueue;
+        j["valid_nonces"] = validNonces;
+        j["processed_nonces"] = processedCount;
+
+        std::filesystem::create_directories("zarbackend");
+        const std::string path = "zarbackend/jobmanager_status.json";
+        const std::string tmp = path + ".tmp";
+        std::ofstream file(tmp);
+        file << std::setw(4) << j << std::endl;
+        file.close();
+        std::rename(tmp.c_str(), path.c_str());
+    } catch (const std::exception& e) {
+        Logger::logError("StatusExporter",
+                         std::string("Error exporting job status: ") + e.what());
+    }
+}
+
 
 std::string StatusExporter::formatTime(long seconds) {
     long hours = seconds / 3600;
