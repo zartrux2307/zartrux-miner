@@ -10,24 +10,26 @@
 
 class Logger {
 public:
-    enum Level {
-        DEBUG, INFO, WARN, ERROR, CRITICAL
-    };
-
-    // Optional initialization (e.g. log file path). Parameters may be ignored
-    // by simple implementations.
-    static void init(const std::string& file, bool colorConsole, size_t rotateEveryN);
+     enum Level {
+        LogDebug,
+        LogInfo,
         LogWarn,
         LogError,
         LogCritical
     };
 
+
+    // Optional initialization (e.g. log file path). Parameters may be ignored
+    // by simple implementations.
+   static void init(const std::string& file, bool colorConsole, size_t rotateEveryN);
+
     // Log con componente y mensaje
     static void debug(const std::string& component, const std::string& message);
-    static void info(const std::string& component, const std::string& message);
-    static void warn(const std::string& component, const std::string& message);
     static void error(const std::string& component, const std::string& message);
     static void critical(const std::string& component, const std::string& message);
+     static void info(const std::string& component, const std::string& message);
+     static void warn(const std::string& component, const std::string& message);
+
 
     // Log con printf style
     static void debug(const std::string& component, const char* fmt, ...);

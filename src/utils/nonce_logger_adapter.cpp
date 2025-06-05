@@ -25,13 +25,13 @@ std::mutex& NonceLoggerAdapter::globalMutex() {
 void NonceLoggerAdapter::logPythonEvent(const std::string& level,
                                         const std::string& message,
                                         const pybind11::dict& extra) {
-    std::lock_guard<std::mutex> lock(logger_mutex_);
-     Logger::Level logLevel;␊
+     std::lock_guard<std::mutex> lock(logger_mutex_);
+    Logger::Level logLevel;
     if (level == "DEBUG") logLevel = Logger::Level::LogDebug;
     else if (level == "INFO") logLevel = Logger::Level::LogInfo;
     else if (level == "WARNING") logLevel = Logger::Level::LogWarn;
     else if (level == "ERROR") logLevel = Logger::Level::LogError;
-    else if (level == "CRITICAL") logLevel = Logger::Level::LogCritical;;
+    else if (level == "CRITICAL") logLevel = Logger::Level::LogCritical;
     else {
       Logger::warn(context_,
             "Nivel de log desconocido: " + level + ". Usando INFO por defecto.");

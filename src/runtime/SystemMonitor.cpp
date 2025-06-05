@@ -6,18 +6,18 @@
 #include <cmath>
 #include <thread>
 #include <nlohmann/json.hpp>
-
+#include <unistd.h>
+#include <sys/sysinfo.h>
+#include <filesystem>
+#include <cstdio>
 #ifdef _WIN32
 #include <windows.h>
 #undef ERROR
 #undef INFO
 #include <pdh.h>
 #pragma comment(lib, "pdh.lib")
-#include <unistd.h>
-#include <sys/sysinfo.h>
-#include <filesystem>
-#include <cstdio>
-#endif
+#else
+
 
 // ----------- [Estáticos] -----------
 std::vector<std::function<void(const SystemData&)>> SystemMonitor::listeners;
