@@ -29,17 +29,24 @@ void NonceLoggerAdapter::logPythonEvent(const std::string& level,
     Logger::Level logLevel;
     if (level == "DEBUG") logLevel = Logger::Level::DEBUG;
     else if (level == "INFO") logLevel = Logger::Level::INFO;
-    else if (level == "WARNING") logLevel = Logger::Level::WARNING;
-    else if (level == "ERROR") logLevel = Logger::Level::ERROR_LEVEL;
+    else if (level == "WARNING") logLevel = Logger::Level::WARN;
+    else if (level == "ERROR") logLevel = Logger::Level::ERROR;
     else if (level == "CRITICAL") logLevel = Logger::Level::CRITICAL;
     else {
-        Logger::log(Logger::Level::WARNING, context_,
+      Logger::warn(context_,
             "Nivel de log desconocido: " + level + ". Usando INFO por defecto.");
         logLevel = Logger::Level::INFO;
     }
 
-    std::string formattedMsg = formatNonceMessage(message, extra);
-    Logger::log(logLevel, context_, formattedMsg);
+       std::string formattedMsg = formatNonceMessage(message, extra);
+    switch (logLevel) {
+        case Logger::Level::DEBUG:    Logger::debug(context_, formattedMsg); break;
+        case Logger::Level::INFO:     Logger::info(context_, formattedMsg);  break;
+        case Logger::Level::WARN:     Logger::warn(context_, formattedMsg);  break;
+        case Logger::Level::ERROR:    Logger::error(context_, formattedMsg); break;
+        case Logger::Level::CRITICAL: Logger::critical(context_, formattedMsg); break;
+        default:                      Logger::info(context_, formattedMsg);  break;
+    }
 }
 
 void NonceLoggerAdapter::logExportProgress(size_t processed,
@@ -50,7 +57,7 @@ void NonceLoggerAdapter::logExportProgress(size_t processed,
         std::string error = "Datos inválidos en logExportProgress: processed="
                           + std::to_string(processed)
                           + " total=" + std::to_string(total);
-        Logger::log(Logger::Level::ERROR_LEVEL, context_, error);
+           Logger::error(context_, error);
         return;
     }
     double percentage = (static_cast<double>(processed) / total) * 100.0;
@@ -59,7 +66,7 @@ void NonceLoggerAdapter::logExportProgress(size_t processed,
         << " (" << std::fixed << std::setprecision(2) << percentage << "%)";
     if (!additionalInfo.empty())
         oss << " - " << additionalInfo;
-    Logger::log(Logger::Level::INFO, context_, oss.str());
+     Logger::info(context_, oss.str());
 }
 
 void NonceLoggerAdapter::logFileOperation(const std::string& operation,
@@ -67,22 +74,22 @@ void NonceLoggerAdapter::logFileOperation(const std::string& operation,
                                           bool success) {
     std::lock_guard<std::mutex> lock(logger_mutex_);
     if (!isFilenameSafe(filename)) {
-        Logger::log(Logger::Level::WARNING, context_,
+     Logger::warn(context_,
                    "Nombre de archivo potencialmente inseguro: " + filename);
     }
     if (operation.empty() || filename.empty()) {
-        Logger::log(Logger::Level::ERROR_LEVEL, context_,
+       Logger::error(context_,
                    "Operación o nombre de archivo vacío en logFileOperation.");
         return;
     }
     std::string message = operation + " " + filename + " - " + (success ? "SUCCESS" : "FAILED");
-    Logger::log(Logger::Level::INFO, context_, message);
+      Logger::info(context_, message);
 }
 
 void NonceLoggerAdapter::setNonceLoggingPrecision(int precision) {
     std::lock_guard<std::mutex> lock(logger_mutex_);
     if (precision < 0 || precision > 10) {
-        Logger::log(Logger::Level::WARNING, context_,
+           Logger::warn(context_,
                    "Precisión inválida: " + std::to_string(precision) + ". Usando valor por defecto (6).");
         precision_ = 6;
         return;
@@ -133,7 +140,7 @@ std::string NonceLoggerAdapter::formatNonceMessage(const std::string& base, cons
                 }
             } catch (const std::exception& e) {
                 oss << key << "=<conversion-error>";
-                Logger::log(Logger::Level::WARNING, context_,
+                  Logger::warn(context_,
                            "Error convirtiendo valor: " + key + ": " + e.what());
             }
         }
