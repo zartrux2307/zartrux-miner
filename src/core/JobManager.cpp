@@ -6,7 +6,7 @@
 #include <cmath>
 #include <fmt/core.h>
 #include <csignal>
-#elif _WIN32
+#ifdef _WIN32
 #include <windows.h>
 #endif
 

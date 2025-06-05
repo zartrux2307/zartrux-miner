@@ -1,22 +1,17 @@
 {
-    "features_to_scale": ["nonce_value", "difficulty"],
-    "scaler_type": "minmax",
-    "lag_values": [1, 2, 3],
-    "features_for_lag": ["nonce_value"],
-    "window_sizes": [5, 10, 15],
-    "agg_funcs": ["mean", "std"],
-    "features_for_rolling": ["nonce_value"]
-}
-{
-    "data_path": "../data/nonce_training_data.csv",
-    "data_format": "csv",
-    "compression": null,
-    "delimiter": ",",
-    "header": true
-}
-{
-    "numeric_features": ["nonce_value", "difficulty"],
-    "categorical_features": ["pool_id", "miner_id"],
-    "data_path": "../data/nonce_training_data.csv",
-    "output_path": "../data/nonce_preprocessed.csv"
+  "features_to_scale": ["nonce_value", "difficulty"],
+  "scaler_type": "minmax",
+  "lag_values": [1, 2, 3],
+  "features_for_lag": ["nonce_value"],
+  "window_sizes": [5, 10, 15],
+  "agg_funcs": ["mean", "std"],
+  "features_for_rolling": ["nonce_value"],
+  "data_path": "../data/nonce_training_data.csv",
+  "data_format": "csv",
+  "compression": null,
+  "delimiter": ",",
+  "header": true,
+  "numeric_features": ["nonce_value", "difficulty"],
+  "categorical_features": ["pool_id", "miner_id"],
+  "output_path": "../data/nonce_preprocessed.csv"
 }

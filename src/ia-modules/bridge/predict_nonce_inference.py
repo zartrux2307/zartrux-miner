@@ -4,9 +4,8 @@ import os
 import logging
 from typing import List, Dict
 from utils.nonce_loader import NonceLoader
-from validation.nonce_quality import NonceQualityValidator
+from ia_modules.validation.nonce_quality import NonceQualityValidator
 from analytics.entropy_tools import ShannonEntropyCalculator
-from models.model_versioning import ModelVersionManager
 
 # Configuración de logging
 logging.basicConfig(level=logging.INFO)

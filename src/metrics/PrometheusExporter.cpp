@@ -134,6 +134,19 @@ void PrometheusExporter::recordNetworkEvent(NetworkEventType type, const std::st
     }
 }
 
+void PrometheusExporter::recordMetrics(const std::map<std::string, uint64_t>& metrics) noexcept {
+    std::lock_guard<std::mutex> lock(metrics_mutex_);
+    for (const auto& [key, value] : metrics) {
+        if (key == "total_hash_rate" && hashrate_) {
+            hashrate_->Set(static_cast<double>(value));
+        } else if (key == "accepted_hashes" && shares_) {
+            shares_->Set(static_cast<double>(value));
+        } else if (key == "ia_nonces_used" && efficiency_) {
+            efficiency_->Set(static_cast<double>(value));
+        }
+    }
+}
+
 std::string PrometheusExporter::exportMetrics() const {
     std::lock_guard<std::mutex> lock(metrics_mutex_);
     prometheus::TextSerializer serializer;

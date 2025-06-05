@@ -6,7 +6,7 @@
 #include <vector>
 #include <cstdint>
 #include "core/JobManager.h"
-
+#include "core/NonceValidator.h"
 class WorkerThread {
 public:
     struct Metrics {
@@ -38,8 +38,8 @@ public:
     void stop();
     /// Reiniciar hilo (stop + start)
     void restart();
-    /// Afinidad de CPU (bindear hilo a core)
-    void setCPUAffinity(int core);
+      /// Afinidad de CPU (bindear hilo a core)
+    bool setCPUAffinity(int core);
 
     bool isRunning() const;
     Metrics getMetrics() const;
@@ -48,7 +48,7 @@ public:
 
 private:
     void run();
-    std::string toHexString(const std::vector<uint8_t>& hash) const;
+    std::string toHexString(const NonceValidator::hash_t& hash) const;
 
     unsigned m_id;
     JobManager& m_jobManager;

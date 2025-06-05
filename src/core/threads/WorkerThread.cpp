@@ -68,17 +68,17 @@ void WorkerThread::restart() {
     start();
 }
 
-bool WorkerThread::setCPUAffinity(int cpuCore) {
+bool WorkerThread::setCPUAffinity(int core) {
 #if defined(_WIN32)
-    if (cpuCore < 0) return false;
-    DWORD_PTR mask = (1ULL << cpuCore);
+    if (core < 0) return false;
+    DWORD_PTR mask = (1ULL << core);
     HANDLE threadHandle = (HANDLE)m_thread.native_handle();
     DWORD_PTR result = SetThreadAffinityMask(threadHandle, mask);
     if (result == 0) {
         Logger::warn("[WorkerThread {}] No se pudo fijar afinidad CPU (Windows).", m_id);
         return false;
     } else {
-        Logger::info("[WorkerThread {}] Afinidad fijada al core {} (Windows)", m_id, cpuCore);
+        Logger::info("[WorkerThread {}] Afinidad fijada al core {} (Windows)", m_id, core);
         return true;
     }
 #else
@@ -92,8 +92,9 @@ void WorkerThread::run() {
     auto& iaReceiver = IAReceiver::getInstance();
 
     // Fijar afinidad de CPU si procede
-    setCPUAffinity(m_config.cpuAffinity);
-
+    if (!setCPUAffinity(m_config.cpuAffinity)) {
+        Logger::debug("[WorkerThread {}] CPU affinity could not be set", m_id);
+    }
     Logger::info("[WorkerThread {}] Iniciado. Modo actual: {}", 
         m_id, modeToString(modeManager.getCurrentMode()));
 

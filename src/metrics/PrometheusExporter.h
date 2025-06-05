@@ -29,7 +29,9 @@ public:
     void shutdown() noexcept;
     
     void recordHashEvent(HashEventType type, double value = 0.0) noexcept;
-    void recordNetworkEvent(NetworkEventType type, const std::string& source = "") noexcept;
+        void recordNetworkEvent(NetworkEventType type, const std::string& source = "") noexcept;
+
+    void recordMetrics(const std::map<std::string, uint64_t>& metrics) noexcept;
     
     std::string exportMetrics() const;
 

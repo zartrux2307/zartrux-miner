@@ -1,25 +1,22 @@
 {
-    "regression_model": "gradient_boosting",
-    "regression_features": [
-        "nonce",
-        "block_timestamp",
-        "difficulty",
-        "hash_score"
-    ],
-    "hyperparameters": {
-        "regressor__n_estimators": [100, 150, 200],
-        "regressor__learning_rate": [0.01, 0.1, 0.2],
-        "regressor__max_depth": [3, 5, 7]
-    },
-    "save_plots": true,
-    "reports_path": "reports/regression"
-}
-{
-    "ts_windows": [10, 50, 100],
-    "ts_metrics": ["ma", "ema", "std"],
-    "reports_path": "reports/timeseries",
-    "data_preprocessing": {
-        "fill_method": "ffill",
-        "outlier_threshold": 3.0
-    }
+  "regression_model": "gradient_boosting",
+  "regression_features": [
+    "nonce",
+    "block_timestamp",
+    "difficulty",
+    "hash_score"
+  ],
+  "hyperparameters": {
+    "regressor__n_estimators": [100, 150, 200],
+    "regressor__learning_rate": [0.01, 0.1, 0.2],
+    "regressor__max_depth": [3, 5, 7]
+  },
+  "save_plots": true,
+  "reports_path": "reports/regression",
+  "ts_windows": [10, 50, 100],
+  "ts_metrics": ["ma", "ema", "std"],
+  "data_preprocessing": {
+    "fill_method": "ffill",
+    "outlier_threshold": 3.0
+  }
 }

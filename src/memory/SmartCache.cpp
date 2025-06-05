@@ -13,7 +13,17 @@
     #define aligned_alloc(align, size) _aligned_malloc(size, align)
     #define aligned_free(ptr) _aligned_free(ptr)
 #else
-    #error "Solo se soporta Windows en esta versión. Implementa afinidad y alineación para Linux en otro archivo."
+    // Fallback simple para plataformas POSIX
+    #include <stdlib.h>
+    static void* posix_aligned_alloc(size_t align, size_t size) {
+        void* ptr = nullptr;
+        if (posix_memalign(&ptr, align, size) != 0) {
+            return nullptr;
+        }
+        return ptr;
+    }
+    #define aligned_alloc(align, size) posix_aligned_alloc(align, size)
+    #define aligned_free(ptr) free(ptr)
 #endif
 
 namespace zartrux::memory {

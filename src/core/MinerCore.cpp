@@ -3,13 +3,14 @@
 #include "metrics/PrometheusExporter.h"
 #include "runtime/SystemMonitor.h"
 #include "utils/StatusExporter.h"
+#include "network/WebsocketBackend.h"
 #include <fstream>
 #include <sstream>
 #include <csignal>
 #include <thread>
 #include <iomanip>
 
-#elif _WIN32
+#ifdef _WIN32
 #include <windows.h>
 #endif
 
@@ -208,20 +209,21 @@ void MinerCore::updateMetrics() {
         iaNoncesUsed += s.iaNoncesUsed;
         totalHashRate += s.hashRate;
     }
-    PrometheusExporter::instance().record({
+   PrometheusExporter::getInstance().recordMetrics({
         {"total_hashes", totalHashes},
         {"accepted_hashes", acceptedHashes},
         {"ia_nonces_used", iaNoncesUsed},
         {"total_hash_rate", static_cast<uint64_t>(totalHashRate)},
         {"active_threads", static_cast<uint64_t>(getActiveThreads())}
     });
-    StatusExporter::instance().exportJSON({
-        {"hashrate", totalHashRate},
-        {"threads", m_numThreads},
-        {"shares", acceptedHashes},
-        {"temperature", getTemperature()},
-        {"uptime", getMiningTime()}
-    });
+    MinerStatus status{};
+    status.hashrate = totalHashRate;
+    status.shares = acceptedHashes;
+    status.temperature = getTemperature();
+    status.mining_seconds = getMiningTime();
+    status.active_threads = getActiveThreads();
+    status.total_threads = m_numThreads;
+    StatusExporter::exportStatus(status);
     broadcastEvent("metrics", std::to_string(totalHashRate));
     Logger::debug("[MinerCore] Métricas actualizadas: Total hashes={}, Aceptados={}, IA={}",
                  totalHashes, acceptedHashes, iaNoncesUsed);

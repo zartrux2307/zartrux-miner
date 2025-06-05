@@ -8,11 +8,10 @@ import sys
 import logging
 import signal
 import subprocess
+import json
 from threading import Event
 from concurrent.futures import ThreadPoolExecutor
-from typing import Dict, List
-import zmq
-import psutil
+from typing import List
 
 # Módulos internos
 from utils.config_manager import get_ia_config, get_hub_config
@@ -20,6 +19,7 @@ from utils.nonce_loader import load_realtime_nonces
 from bridge.ethical_nonce_adapter import EthicalNonceFilter
 from training.AutoTrainer import ModelTrainer
 from analytics.TimeSeriesAnalyzer import TemporalPatternDetector
+from analytics.Hash_Rate_Predictor import HashRatePredictor
 from evaluation.nonce_stats import StatisticalAnalyzer
 
 logger = logging.getLogger('ZartruxAILauncher')
@@ -200,4 +200,5 @@ def main():
     orchestrator.run()
 
 if __name__ == "__main__":
+   
     main()
