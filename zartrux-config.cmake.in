@@ -1,0 +1,16 @@
+# zartrux-config.cmake.in
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+find_package(Qt6 REQUIRED COMPONENTS Core Quick Network Qml QmlModels )
+find_package(OpenSSL REQUIRED)
+find_package(fmt CONFIG REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
+find_package(cpr CONFIG REQUIRED)
+find_package(ZeroMQ REQUIRED)
+find_package(yaml-cpp CONFIG REQUIRED)
+# Prometheus requiere manejo especial
+find_package(prometheus-cpp QUIET)
+find_package(prometheus-cpp CONFIG REQUIRED)
+include("${CMAKE_CURRENT_LIST_DIR}/zartrux_targets.cmake")

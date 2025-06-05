@@ -95,11 +95,14 @@ target_link_libraries(zartrux-miner PRIVATE
     nlohmann_json::nlohmann_json
     fmt::fmt
     cpr::cpr
-    Pdh.lib
   ${RANDOMX_LIBRARIES}
     libzmq
     yaml-cpp::yaml-cpp
 )
+
+if(WIN32)
+    target_link_libraries(zartrux-miner PRIVATE Pdh.lib)
+endif()
 
 # Instalación ejecutable y headers randomx
 install(TARGETS zartrux-miner randomx  # AÑADIR randomx aquí
