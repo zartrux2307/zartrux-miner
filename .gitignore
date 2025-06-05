@@ -1,0 +1,30 @@
+# Ignore build directories
+build/
+
+# Ignore compiled binaries
+*.exe
+*.obj
+*.o
+*.dll
+*.so
+*.dylib
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+
+# Ignore large data files unless explicitly needed
+*.csv
+*.joblib
+
+# Exceptions for tracked data
+!src/config/datanonce_training_data.csv
+!src/ia-modules/data/datanonce_training_data.csv
+!src/ia-modules/data/nonce_preprocessed.csv
+!src/ia-modules/data/nonce_training_data.csv
+!src/ia-modules/datanonce_training_data.csv
+!src/ia-modules/ia-modules/data/nonce_training_data.csv
+!src/ia-modules/logs/nonces_hash.csv
+!src/ia-modules/models/cluster_model.joblib
+!src/ia-modules/models/ethical_nonce_model.joblib
+!src/ia-modules/models/hash_classifier_model.joblib
