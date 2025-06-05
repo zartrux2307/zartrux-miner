@@ -5,6 +5,8 @@
 #include <cstring>
 #include <algorithm>
 #include <cmath>
+#include <chrono>
+#include <memory>
 
 // Alineación requerida para conjuntos de datos AVX-512
 constexpr size_t AVX512_ALIGNMENT = 64;
@@ -61,7 +63,7 @@ std::shared_ptr<const std::vector<uint8_t>> SmartCache::getDataset(const std::st
     randomx_dataset_init(reinterpret_cast<randomx_dataset*>(alignedPtr), 
                         seed.data(), seed.size());
     
-    Logger::info("Dataset creado para seed: {}", seed.substr(0, 8) + "...");
+    Logger::info("SmartCache", "Dataset creado para seed: {}", seed.substr(0, 8) + "...");
     
     // 3. Actualizar caché
     m_datasetCache.push_back({seed, dataset});
@@ -97,7 +99,7 @@ void* SmartCache::allocateWorkBuffer(size_t size, size_t alignment) {
     m_activeBuffers[ptr] = {ptr, size, alignment};
     m_totalMemory += size;
     
-    Logger::debug("Buffer asignado: {} bytes @ {}", size, fmt::ptr(ptr));
+     Logger::debug("SmartCache", "Buffer asignado: {} bytes @ {}", size, fmt::ptr(ptr));
     return ptr;
 }
 
@@ -108,7 +110,7 @@ void SmartCache::freeWorkBuffer(void* ptr) {
         // Marcar como disponible para reutilización
         m_availableBuffers.push_back(ptr);
     } else {
-        Logger::warn("Intento de liberar buffer no gestionado: {}", fmt::ptr(ptr));
+        Logger::warn("SmartCache", "Intento de liberar buffer no gestionado: {}", fmt::ptr(ptr));
     }
 }
 

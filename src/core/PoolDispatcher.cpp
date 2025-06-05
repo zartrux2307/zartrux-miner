@@ -21,8 +21,8 @@ namespace zartrux::dispatcher {
     
     void PoolDispatcher::setMode(::MiningMode mode) {
         m_currentMode = mode;
-        Logger::info("PoolDispatcher mode set to: {}", 
-                     MiningModeManager::modeToString(mode));
+         Logger::info("PoolDispatcher", "mode set to: {}",
+                     MiningModeManager::modeToString(mode))
     }
     
     void PoolDispatcher::setEndpoints(const std::string& iaEndpoint, 
@@ -35,7 +35,7 @@ namespace zartrux::dispatcher {
         m_poolEndpoint.user = poolUser;
         m_poolEndpoint.pass = poolPass;
         
-        Logger::info("Endpoints configured - IA: {}, Pool: {}", iaEndpoint, poolEndpoint);
+          Logger::info("PoolDispatcher", "Endpoints configured - IA: {}, Pool: {}", iaEndpoint, poolEndpoint);
     }
     
     void PoolDispatcher::setHybridRatio(double ratio) {
@@ -43,7 +43,7 @@ namespace zartrux::dispatcher {
             throw std::invalid_argument("Hybrid ratio must be between 0.0 and 1.0");
         }
         m_hybridRatio = ratio;
-        Logger::info("Hybrid ratio set to: {:.2f}", ratio);
+        Logger::info("PoolDispatcher", "Hybrid ratio set to: {:.2f}", ratio);
     }
     
     void PoolDispatcher::setRetryPolicy(uint8_t maxRetries, uint16_t retryDelayMs) {
@@ -51,13 +51,13 @@ namespace zartrux::dispatcher {
         if (retryDelayMs < 100) retryDelayMs = 100;
         m_maxRetries = maxRetries;
         m_retryDelayMs = retryDelayMs;
-        Logger::info("Retry policy: {} attempts, {}ms delay", maxRetries, retryDelayMs);
+        Logger::info("PoolDispatcher", "Retry policy: {} attempts, {}ms delay", maxRetries, retryDelayMs);
     }
     
     void PoolDispatcher::setTimeout(uint16_t timeoutMs) {
         if (timeoutMs < 100) timeoutMs = 100;
         m_timeoutMs = timeoutMs;
-        Logger::info("HTTP timeout set to: {}ms", timeoutMs);
+        Logger::info("PoolDispatcher", "HTTP timeout set to: {}ms", timeoutMs);
     }
     
     void PoolDispatcher::setSmartThreshold(double threshold) {
@@ -65,13 +65,13 @@ namespace zartrux::dispatcher {
             throw std::invalid_argument("Smart threshold must be > 0.0");
         }
         m_smartThreshold = threshold;
-        Logger::info("Smart threshold set to: {:.2f}", threshold);
+       Logger::info("PoolDispatcher", "Smart threshold set to: {:.2f}", threshold);
     }
     
     void PoolDispatcher::registerDispatchCallback(DispatchCallback callback) {
         std::lock_guard<std::mutex> lock(m_mutex);
         m_callbacks.push_back(callback);
-        Logger::info("Dispatch callback registered");
+        Logger::info("PoolDispatcher", "Dispatch callback registered");
     }
     
     bool PoolDispatcher::sendViaHttp(const PoolConfig& endpoint, 
@@ -96,12 +96,12 @@ namespace zartrux::dispatcher {
             
             bool success = (response.status_code >= 200 && response.status_code < 300);
             if (!success) {
-                Logger::warn("HTTP error {} for endpoint: {}", response.status_code, endpoint.url);
+                Logger::warn("PoolDispatcher", "HTTP error {} for endpoint: {}", response.status_code, endpoint.url);
             }
             return success;
             
         } catch (const std::exception& ex) {
-            Logger::error("HTTP exception for {}: {}", endpoint.url, ex.what());
+              Logger::error("PoolDispatcher", "HTTP exception for {}: {}", endpoint.url, ex.what());
             outLatencyMs = 0;
             return false;
         }
@@ -119,7 +119,7 @@ namespace zartrux::dispatcher {
             
             if (attempt < m_maxRetries - 1) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(m_retryDelayMs));
-                Logger::debug("Retry {} for endpoint {}", attempt + 1, endpoint.url);
+                 Logger::debug("PoolDispatcher", "Retry {} for endpoint {}", attempt + 1, endpoint.url);
             }
         }
         return {false, 0};
@@ -247,7 +247,7 @@ namespace zartrux::dispatcher {
         stats.successRate = static_cast<double>(stats.successCount) / 
                           (stats.successCount + stats.failCount);
         
-        Logger::debug("Endpoint {} stats: Success={}, Fail={}, AvgLatency={:.2f}ms", 
+        Logger::debug("PoolDispatcher", "Endpoint {} stats: Success={}, Fail={}, AvgLatency={:.2f}ms",
                      endpoint, stats.successCount, stats.failCount, stats.avgResponseTimeMs);
     }
     

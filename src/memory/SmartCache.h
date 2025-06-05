@@ -37,7 +37,13 @@ public:
     void reset_counters() noexcept;
 
     // Debug info detallado (para logs/desarrollo)
-    void debug_print() const noexcept;
+       void debug_print() const noexcept;
+
+    // Memory utilities for RandomX datasets
+    static void* allocate_aligned_dataset(size_t align, size_t size);
+    static void free_aligned_dataset(void* ptr);
+    static void initRandomXDataset(void* dataset, void* cache,
+                                   uint32_t startItem, uint32_t itemCount);
 
 private:
     void evict_old_entries(size_t incomingSize);

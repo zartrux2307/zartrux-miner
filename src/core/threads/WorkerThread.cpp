@@ -34,7 +34,7 @@ private:
 WorkerThread::WorkerThread(unsigned id, JobManager& jobManager, const Config& config)
     : m_id(id), m_jobManager(jobManager), m_config(config)
 {
-    Logger::debug("[WorkerThread {}] Inicializado con VM: {}", id, (void*)config.vm);
+     Logger::debug("WorkerThread", "[{}] Inicializado con VM: {}", id, (void*)config.vm);
 }
 
 WorkerThread::~WorkerThread() {
@@ -63,7 +63,7 @@ WorkerThread::Metrics WorkerThread::getMetrics() const {
 }
 
 void WorkerThread::restart() {
-    Logger::warn("[WorkerThread {}] Reiniciando tras excepción...", m_id);
+   Logger::warn("WorkerThread", "[{}] Reiniciando tras excepción...", m_id);
     stop();
     start();
 }
@@ -75,10 +75,10 @@ bool WorkerThread::setCPUAffinity(int core) {
     HANDLE threadHandle = (HANDLE)m_thread.native_handle();
     DWORD_PTR result = SetThreadAffinityMask(threadHandle, mask);
     if (result == 0) {
-        Logger::warn("[WorkerThread {}] No se pudo fijar afinidad CPU (Windows).", m_id);
+        Logger::warn("WorkerThread", "[{}] No se pudo fijar afinidad CPU (Windows).", m_id);
         return false;
     } else {
-        Logger::info("[WorkerThread {}] Afinidad fijada al core {} (Windows)", m_id, core);
+        Logger::info("WorkerThread", "[{}] Afinidad fijada al core {} (Windows)", m_id, core);
         return true;
     }
 #else
@@ -93,10 +93,10 @@ void WorkerThread::run() {
 
     // Fijar afinidad de CPU si procede
     if (!setCPUAffinity(m_config.cpuAffinity)) {
-        Logger::debug("[WorkerThread {}] CPU affinity could not be set", m_id);
+         Logger::debug("WorkerThread", "[{}] CPU affinity could not be set", m_id);
     }
-    Logger::info("[WorkerThread {}] Iniciado. Modo actual: {}", 
-        m_id, modeToString(modeManager.getCurrentMode()));
+   Logger::info("WorkerThread", "[{}] Iniciado. Modo actual: {}",
+        m_id, modeToString(modeManager.getCurrentMode()))
 
     auto lastPerfUpdate = std::chrono::steady_clock::now();
     uint64_t lastHashesCount = 0;
@@ -166,18 +166,18 @@ void WorkerThread::run() {
 
                 lastPerfUpdate = now;
                 lastHashesCount = m_metrics.totalHashes;
-                Logger::debug("[WorkerThread {}] Hash rate: {:.2f} H/s", m_id, m_metrics.hashRate.load());
+                   Logger::debug("WorkerThread", "[{}] Hash rate: {:.2f} H/s", m_id, m_metrics.hashRate.load());
             }
         }
     } catch (const std::exception& ex) {
-        Logger::error("[WorkerThread {}] Excepción crítica: {}", m_id, ex.what());
+       Logger::error("WorkerThread", "[{}] Excepción crítica: {}", m_id, ex.what());
         restart(); // Reinicia el hilo tras excepción
     } catch (...) {
-        Logger::error("[WorkerThread {}] Excepción crítica desconocida", m_id);
+       Logger::error("WorkerThread", "[{}] Excepción crítica desconocida", m_id);
         restart();
     }
 
-    Logger::info("[WorkerThread {}] Detenido", m_id);
+      Logger::info("WorkerThread", "[{}] Detenido", m_id);
 }
 
 std::string WorkerThread::toHexString(const NonceValidator::hash_t& hash) const {

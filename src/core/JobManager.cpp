@@ -30,7 +30,7 @@ JobManager::JobManager()
                 fetchIANoncesBackground();
                 saveCheckpoint(); // checkpoint periódico
             } catch (const std::exception& ex) {
-                Logger::error("Excepción hilo IA fetch: {}", ex.what());
+                Logger::error("JobManager", "Excepción hilo IA fetch: {}", ex.what());
             }
             std::this_thread::sleep_for(IA_FETCH_INTERVAL);
         }
@@ -87,7 +87,7 @@ void JobManager::loadCheckpoint() {
         m_iaQueue.push_back(n);
     }
     in.close();
-    Logger::info("Recuperado checkpoint: {} CPU, {} IA", cpuq, iaq);
+     Logger::info("JobManager", "Recuperado checkpoint: {} CPU, {} IA", cpuq, iaq);
 }
 
 // ---- Contribución IA (protección atomic) ----
@@ -112,7 +112,7 @@ std::string JobManager::getIAEndpoint() const {
 void JobManager::injectIANonces(std::vector<AnnotatedNonce>&& nonces) {
     std::lock_guard<std::mutex> lock(m_mutex);
     if (m_iaQueue.size() > MAX_IA_QUEUE) {
-        Logger::warn("Flood control: IA queue saturada, se descarta lote.");
+         Logger::warn("JobManager", "Flood control: IA queue saturada, se descarta lote.");
         return;
     }
     std::sort(nonces.begin(), nonces.end(),
@@ -130,7 +130,7 @@ void JobManager::setWorkerAffinity(size_t workerId, int cpuCore) {
     CPU_SET(cpuCore, &cpuset);
     int rc = pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
     if (rc != 0)
-        Logger::warn("No se pudo asignar afinidad al worker {} (núcleo {})", workerId, cpuCore);
+          Logger::warn("JobManager", "No se pudo asignar afinidad al worker {} (núcleo {})", workerId, cpuCore);
 #endif
 }
 
@@ -229,11 +229,11 @@ std::vector<AnnotatedNonce> JobManager::fetchNoncesFromIA() {
                         .timestamp = Profiler::getTimestamp()
                     });
                 }
-                Logger::info("Obtenidos {} nonces desde IA", nonces.size());
+                Logger::info("JobManager", "Obtenidos {} nonces desde IA", nonces.size());
                 return nonces;
             }
         } catch (...) {
-            Logger::error("Error al obtener nonces desde IA");
+            Logger::error("JobManager", "Error al obtener nonces desde IA");
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(300));
     }
@@ -283,10 +283,10 @@ void JobManager::submitValidNonce(uint64_t nonce, const std::string& hash) {
         std::ofstream out("logs/nonces_exitosos.txt", std::ios::app);
         if (out) {
             out << nonce << "," << hash << "\n";
-            Logger::info("Nonce válido registrado: {}", nonce);
+           Logger::info("JobManager", "Nonce válido registrado: {}", nonce);
         }
     } catch (...) {
-        Logger::error("Error al registrar nonce exitoso");
+         Logger::error("JobManager", "Error al registrar nonce exitoso");
     }
 }
 

@@ -59,10 +59,10 @@ void MiningModeManager::loadFromConfig() {
     try {
         std::string modeStr = ConfigManager::getString("mining_mode", "solo");
         m_currentMode = stringToMode(modeStr);
-        Logger::info("[MiningModeManager] Modo cargado desde config: " + modeToString(m_currentMode));
+         Logger::info("MiningModeManager", "Modo cargado desde config: {}", modeToString(m_currentMode));
         applyModeResources();
     } catch (const std::exception& e) {
-        Logger::error("[MiningModeManager] Error cargando modo desde config: " + std::string(e.what()));
+         Logger::error("MiningModeManager", "Error cargando modo desde config: {}", e.what());
         m_currentMode = MiningMode::SOLO; // Fallback seguro
     }
 }
@@ -72,7 +72,7 @@ void MiningModeManager::saveToConfig() {
         ConfigManager::set("mining_mode", modeToString(m_currentMode));
         ConfigManager::save();
     } catch (const std::exception& e) {
-        Logger::error("[MiningModeManager] Error guardando modo: " + std::string(e.what()));
+        Logger::error("MiningModeManager", "Error guardando modo: {}", e.what());
     }
 }
 
@@ -88,12 +88,12 @@ bool MiningModeManager::canTransitionTo(MiningMode newMode) const {
 
     // Restricción: Cambiar IA→POOL solo permitida con reinicio
     if (m_currentMode == MiningMode::IA && newMode == MiningMode::POOL) {
-        Logger::warn("[MiningModeManager] Transición IA → POOL requiere reinicio del sistema.");
+        Logger::warn("MiningModeManager", "Transición IA → POOL requiere reinicio del sistema.");
         return false;
     }
 
-    // Validación adicional: No cambiar si la temperatura de CPU supera los 92ºC
-    if (SystemMonitor::getCPUTemp() > 92.0) {
+       // Validación adicional: No cambiar si la temperatura de CPU supera los 92ºC
+    if (SystemMonitor::getSystemData().cpu_temp > 92.0) {
         Logger::error("[MiningModeManager] Temperatura demasiado alta para cambio de modo.");
         return false;
     }
@@ -101,7 +101,7 @@ bool MiningModeManager::canTransitionTo(MiningMode newMode) const {
     // Validación: Si la energía está en modo crítico, solo se permite SOLO o IA
     if (PowerSafe::getEnergyState() == PowerSafe::CRITICAL) {
         if (!(newMode == MiningMode::SOLO || newMode == MiningMode::IA)) {
-            Logger::warn("[MiningModeManager] Sólo se permiten modos SOLO o IA en estado energético crítico.");
+            Logger::warn("MiningModeManager", "Sólo se permiten modos SOLO o IA en estado energético crítico.");
             return false;
         }
     }
@@ -116,7 +116,7 @@ bool MiningModeManager::canTransitionTo(MiningMode newMode) const {
 void MiningModeManager::setMode(MiningMode newMode) {
     std::unique_lock<std::mutex> lock(m_mutex);
     if (newMode == m_currentMode) {
-        Logger::debug("[MiningModeManager] Modo ya activo: " + modeToString(newMode));
+         Logger::debug("MiningModeManager", "Modo ya activo: {}", modeToString(newMode));
         return;
     }
 
@@ -131,10 +131,10 @@ void MiningModeManager::setMode(MiningMode newMode) {
         applyModeResources();
         lock.lock();
         saveToConfig();
-        Logger::info("[MiningModeManager] Cambio de modo: " + modeToString(m_previousMode) +
+       Logger::info("MiningModeManager", "Cambio de modo: {} → {}", modeToString(m_previousMode), modeToString(newMode));
                      " → " + modeToString(newMode));
     } catch (const std::exception& e) {
-        m_currentMode = m_previousMode; // Revertir a modo anterior
+      Logger::error("MiningModeManager", "Fallo al cambiar de modo: {}", e.what());
         Logger::error("[MiningModeManager] Fallo al cambiar de modo: " + std::string(e.what()));
         throw;
     }
@@ -186,7 +186,7 @@ void MiningModeManager::applyModeResources() {
         // StatusExporter::flush();
         // Todo lo anterior sería para que zarbackend/server.py lo consuma en vivo
     } catch (const std::exception& ex) {
-        Logger::critical("[MiningModeManager] Error al aplicar recursos: " + std::string(ex.what()));
+        Logger::critical("MiningModeManager", "Error al aplicar recursos: {}", ex.what());
         throw;
     }
 }

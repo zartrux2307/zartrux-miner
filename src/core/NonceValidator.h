@@ -57,7 +57,7 @@ public:
                                          const ValidatorConfig& config = ValidatorConfig());
 
     // VALIDACIÓN EN PARALELO: Producción, super-eficiente
-    static std::vector<bool> validateBatchParallel(
+     static std::vector<bool> validateBatchParallel(
         randomx_vm** vms,  // Array de VMs, uno por hilo
         size_t num_vms,
         const std::vector<uint64_t>& nonces,
@@ -65,9 +65,10 @@ public:
         std::span<const uint8_t> jobBlob,
         const ValidatorConfig& config = ValidatorConfig());
 
-private:
+    // Utility to insert a nonce into a job blob
     static void insertNonce(std::vector<uint8_t>& blob, uint64_t nonce,
                            size_t position, size_t size, Endianness endian);
 
+private:
     ValidatorConfig m_config;
 };
