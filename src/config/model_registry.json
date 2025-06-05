@@ -1,0 +1,30 @@
+{
+  "version": "1.0.0",
+  "timestamp": "2025-05-20T18:00:00Z",
+  "models": {
+    "ethical_nonce_model": {
+      "cid": "QmEthicalModelABC123XYZ",
+      "filename": "ethical_nonce_model.joblib"
+    },
+    "hash_classifier_model": {
+      "cid": "QmHashModelDEF456UVW",
+      "filename": "hash_classifier_model.joblib"
+    }
+  },
+  "configurations": {
+    "ia_config": {
+      "cid": "QmIaConfig987ZZZ456",
+      "filename": "ia_config.json"
+    },
+    "miner_config": {
+      "cid": "QmMinerConfABC999XYZ",
+      "filename": "miner_config.json"
+    }
+  },
+  "documentation": {
+    "distributed_mode_doc": {
+      "cid": "QmDocFile777DOCXXX",
+      "filename": "ZARTRUX_DISTRIBUTED.md"
+    }
+  }
+}

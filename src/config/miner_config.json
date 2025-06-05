@@ -1,0 +1,65 @@
+{
+  "version": "1.2.0",
+  "mining": {
+    "mode": "distributed",
+    "algorithm": "randomx",
+    "threads": 4,
+    "priority": "high",
+    "job_timeout_ms": 8000,
+    "auto_restart": true
+  },
+  "pool": {
+    "url": "pool.hashvault.pro:443",
+    "user": "44crWF5Y7gWDLCwhNSH7cbAbCPT6xScpCRFMMYhbCpFijJVUpPwze39GbvRRR1GsRZCvNMKZpU4sPT8bqRY3FY29Loyx1z",
+    "pass": "zaria",
+    "tls": true,
+    "keepalive": true,
+    "failover": [
+      "gulf.moneroocean.stream:443",
+      "de.monero.pool.minergate.com:45700"
+    ]
+  },
+  "ia": {
+    "enabled": true,
+    "mode": "remote",
+    "endpoint": "tcp://127.0.0.1:5555",
+    "injector": "bridge/inject_nonces_from_ia.py",
+    "ethics_filter": "bridge/ethical_nonce_adapter.py",
+    "model": "models/ethical_nonce_model.joblib",
+    "log_nonces": true
+  },
+  "metrics": {
+    "enabled": true,
+    "prometheus": {
+      "host": "127.0.0.1",
+      "port": 9090
+    }
+  },
+  "hub": {
+    "enabled": true,
+    "ip": "127.0.0.1",
+    "port": 8000,
+    "zmq_port": 5555,
+    "registry": "config/model_registry.json"
+  },
+  "monitoring": {
+    "log_level": "info",
+    "log_file": "logs/miner.log",
+    "max_log_size_mb": 10,
+    "rotate": true,
+    "export_successful_nonces": "logs/nonces_exitosos.txt"
+  },
+  "security": {
+    "signature_check": true,
+    "auth_token": "ZARTRUX_SECURE_HASH_TOKEN",
+    "encryption": {
+      "aes": true,
+      "key_file": "security/key.pem"
+    }
+  },
+  "performance_limits": {
+    "max_cpu_usage_percent": 85,
+    "adaptive_throttling": true,
+    "thermal_protection": true
+  }
+}
