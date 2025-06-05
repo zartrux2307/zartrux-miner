@@ -66,7 +66,9 @@ std::vector<uint64_t> IAReceiver::fetchNonces(int count) {
     try {
         json req = {{"count", count}};
         if (!m_config.authToken.empty()) req["auth"] = m_config.authToken;
-        auto resp = m_httpSession.Post(cpr::Body{req.dump()}, cpr::Header{{"Content-Type", "application/json"}});
+           m_httpSession.SetBody(cpr::Body{req.dump()});
+        m_httpSession.SetHeader({{"Content-Type", "application/json"}});
+        auto resp = m_httpSession.Post();
         if (resp.status_code == 200) {
             auto j = json::parse(resp.text);
             if (j.contains("nonces") && j["nonces"].is_array()) {
@@ -86,7 +88,9 @@ void IAReceiver::reportResult(uint64_t nonce, bool accepted, const std::string& 
         json req = {{"nonce", nonce}, {"accepted", accepted}};
         if (!hash.empty()) req["hash"] = hash;
         if (!m_config.authToken.empty()) req["auth"] = m_config.authToken;
-        auto resp = m_httpSession.Post(cpr::Body{req.dump()}, cpr::Header{{"Content-Type", "application/json"}});
+         m_httpSession.SetBody(cpr::Body{req.dump()});
+        m_httpSession.SetHeader({{"Content-Type", "application/json"}});
+        auto resp = m_httpSession.Post();
         if (resp.status_code == 200) {
             m_stats.reportSuccesses++;
             if (m_config.verbose) logInfo("Reported nonce " + std::to_string(nonce) + " result");

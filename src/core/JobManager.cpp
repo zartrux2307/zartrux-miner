@@ -8,14 +8,19 @@
 #include <csignal>
 #ifdef _WIN32
 #include <windows.h>
+#undef ERROR
+#undef INFO
 #endif
 
 using json = nlohmann::json;
-
-// ---- Singleton ----
 JobManager& JobManager::getInstance() {
     static JobManager instance;
     return instance;
+}
+
+// compatibility alias
+JobManager& JobManager::instance() {
+    return getInstance();
 }
 
 // ---- Constructor/Destructor: arranque fetch de IA y recuperación checkpoint ----
@@ -291,10 +296,28 @@ void JobManager::submitValidNonce(uint64_t nonce, const std::string& hash) {
 }
 
 // ---- Métricas de cola y contadores ----
-size_t JobManager::getQueueSize() const {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    return m_cpuQueue.size() + m_iaQueue.size();
+size_t JobManager::getProcessedCount() const {
+    return m_processedCount.load();
 }
+
+// ---- Información de trabajo actual ----
+MiningJob JobManager::getCurrentJob() const {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_currentJob;
+}
+
+float JobManager::getCurrentDifficulty() const {
+    return m_currentDifficulty.load();
+}
+
+uint64_t JobManager::getCurrentBlockHeight() const {
+    return m_currentBlockHeight.load();
+}
+
+bool JobManager::isBlockValidating() const {
+    return m_blockValidating.load();
+}
+
 
 size_t JobManager::getProcessedCount() const {
     return m_processedCount.load();

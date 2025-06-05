@@ -150,7 +150,7 @@ void PrometheusExporter::recordMetrics(const std::map<std::string, uint64_t>& me
 std::string PrometheusExporter::exportMetrics() const {
     std::lock_guard<std::mutex> lock(metrics_mutex_);
     prometheus::TextSerializer serializer;
-    return serializer.Serialize(*registry_.get());
+    return serializer.Serialize(registry_->Collect());
 }
 
 void PrometheusExporter::parseLabelsYAML(const std::string& yaml_path) {

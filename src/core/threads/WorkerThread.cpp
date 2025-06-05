@@ -13,6 +13,8 @@
 #include <exception>
 #if defined(_WIN32)
     #include <windows.h>
+    #undef ERROR
+    #undef INFO
 #endif
 
 // Solo para minería real de Monero/RandomX. No válido para ningún otro algoritmo ni para simulaciones.

@@ -21,6 +21,7 @@ target_include_directories(metrics PUBLIC
 )
 target_link_libraries(metrics PRIVATE
     prometheus-cpp::core
+    prometheus-cpp::pull
     yaml-cpp::yaml-cpp
     zartrux::core
 )
