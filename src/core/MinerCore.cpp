@@ -27,7 +27,7 @@ MinerCore::MinerCore(std::shared_ptr<JobManager> jobManager, unsigned threadCoun
       m_acceptedShares(0) 
 {
     if (m_numThreads == 0) m_numThreads = 4;
-     Logger::info("MinerCore", "Configurado con {} hilos", m_numThreads);
+      Logger::info("MinerCore", "Configurado con {} hilos", m_numThreads.load());
 
     // Intentar restaurar estado si es posible
     loadCheckpoint();
@@ -89,7 +89,7 @@ bool MinerCore::initialize(const MiningConfig& config) {
             auto worker = std::make_unique<WorkerThread>(i, *m_jobManager, cfg);
             m_workers.emplace_back(std::move(worker));
         }
-          Logger::info("MinerCore", "Inicialización completa con {} hilos. Modo: {}", m_numThreads, m_config.mode);
+                Logger::info("MinerCore", "Inicialización completa con {} hilos. Modo: {}", m_numThreads.load(), m_config.mode);
         broadcastEvent("init", "Miner inicializado");
         return true;
     }
@@ -181,7 +181,7 @@ void MinerCore::setNumThreads(unsigned count) {
         return;
     }
     m_numThreads = count > 0 ? count : std::thread::hardware_concurrency();
-     Logger::info("MinerCore", "Número de hilos actualizado a {}", m_numThreads);
+  Logger::info("MinerCore", "Número de hilos actualizado a {}", m_numThreads.load());
 }
 
 std::vector<MinerCore::WorkerStats> MinerCore::getWorkerStats() const {

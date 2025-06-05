@@ -68,9 +68,10 @@ void MiningModeManager::loadFromConfig() {
 }
 
 void MiningModeManager::saveToConfig() {
-    try {
-        ConfigManager::set("mining_mode", modeToString(m_currentMode));
-        ConfigManager::save();
+   try {
+        auto& cfg = ConfigManager::getInstance();
+        cfg.set("mining_mode", modeToString(m_currentMode));
+        cfg.save();
     } catch (const std::exception& e) {
         Logger::error("MiningModeManager", "Error guardando modo: {}", e.what());
     }

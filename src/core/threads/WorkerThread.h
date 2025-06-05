@@ -41,11 +41,26 @@ public:
       /// Afinidad de CPU (bindear hilo a core)
     bool setCPUAffinity(int core);
 
-    bool isRunning() const;
-    Metrics getMetrics() const;
-    unsigned getId() const { return m_id; }
-    void setAffinity(int core) { m_config.cpuAffinity = core; }
+    return output;
+}
 
+bool WorkerThread::joinable() const {
+    return m_thread.joinable();
+}
+
+void WorkerThread::join() {
+    if (m_thread.joinable()) {
+        m_thread.join();
+    }
+}
+
+uint64_t WorkerThread::getHashesProcessed() const {
+    return m_metrics.totalHashes.load();
+}
+
+uint64_t WorkerThread::getAcceptedHashes() const {
+    return m_metrics.acceptedHashes.load();
+}
 private:
     void run();
     std::string toHexString(const NonceValidator::hash_t& hash) const;

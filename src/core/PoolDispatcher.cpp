@@ -19,10 +19,10 @@ namespace zartrux::dispatcher {
         m_poolEndpoint = {"http://localhost:3333/submit", "", "", Protocol::STRATUM_V2};
     }
     
-    void PoolDispatcher::setMode(::MiningMode mode) {
+        void PoolDispatcher::setMode(::MiningMode mode) {
         m_currentMode = mode;
          Logger::info("PoolDispatcher", "mode set to: {}",
-                     MiningModeManager::modeToString(mode))
+                     modeToString(mode));
     }
     
     void PoolDispatcher::setEndpoints(const std::string& iaEndpoint, 
@@ -161,23 +161,7 @@ namespace zartrux::dispatcher {
                 return (dis(gen) < m_hybridRatio ? m_iaEndpoint : m_poolEndpoint;
             }
                 
-            case MiningMode::SMART: {
-                double iaLatency = getCurrentLatency(m_iaEndpoint.url);
-                double poolLatency = getCurrentLatency(m_poolEndpoint.url);
-                
-                // Fallback si no hay datos
-                if (iaLatency == 0.0 && poolLatency == 0.0) {
-                    return m_iaEndpoint;
-                } else if (iaLatency == 0.0) {
-                    return m_poolEndpoint;
-                } else if (poolLatency == 0.0) {
-                    return m_iaEndpoint;
-                }
-                
-                return (iaLatency < poolLatency * m_smartThreshold) ? m_iaEndpoint : m_poolEndpoint;
-            }
-                
-            default: // POOL y otros
+                        default: // POOL y otros
                 return m_poolEndpoint;
         }
     }

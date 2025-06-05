@@ -317,8 +317,3 @@ uint64_t JobManager::getCurrentBlockHeight() const {
 bool JobManager::isBlockValidating() const {
     return m_blockValidating.load();
 }
-
-
-size_t JobManager::getProcessedCount() const {
-    return m_processedCount.load();
-}
