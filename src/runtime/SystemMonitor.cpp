@@ -9,9 +9,10 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#undef ERROR
+#undef INFO
 #include <pdh.h>
 #pragma comment(lib, "pdh.lib")
-#else
 #include <unistd.h>
 #include <sys/sysinfo.h>
 #include <filesystem>

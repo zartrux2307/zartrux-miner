@@ -5,8 +5,14 @@
 #include <vector>
 
 std::ofstream Logger::logFile;
-Logger::Level Logger::currentLevel = Logger::DEBUG;
+Logger::Level Logger::currentLevel = Logger::LogDebug;
 std::mutex Logger::logMutex;
+
+void Logger::init(const std::string& file, bool /*colorConsole*/, size_t /*rotateEveryN*/) {
+    if (!file.empty())
+        setLogFile(file);
+}
+
 
 // ---- Core log function ----
 void Logger::log(Level lvl, const std::string& component, const std::string& message) {
@@ -29,11 +35,11 @@ void Logger::log(Level lvl, const std::string& component, const std::string& mes
 }
 
 // ---- Basic log calls ----
-void Logger::debug(const std::string& component, const std::string& message)    { log(DEBUG,    component, message); }
-void Logger::info(const std::string& component, const std::string& message)     { log(INFO,     component, message); }
-void Logger::warn(const std::string& component, const std::string& message)     { log(WARN,     component, message); }
-void Logger::error(const std::string& component, const std::string& message)    { log(ERROR,    component, message); }
-void Logger::critical(const std::string& component, const std::string& message) { log(CRITICAL, component, message); }
+void Logger::debug(const std::string& component, const std::string& message)    { log(LogDebug,    component, message); }
+void Logger::info(const std::string& component, const std::string& message)     { log(LogInfo,     component, message); }
+void Logger::warn(const std::string& component, const std::string& message)     { log(LogWarn,     component, message); }
+void Logger::error(const std::string& component, const std::string& message)    { log(LogError,    component, message); }
+void Logger::critical(const std::string& component, const std::string& message) { log(LogCritical, component, message); }
 
 // ---- Printf-style log calls ----
 void Logger::debug(const std::string& component, const char* fmt, ...) {
@@ -42,7 +48,7 @@ void Logger::debug(const std::string& component, const char* fmt, ...) {
     char buffer[2048];
     vsnprintf(buffer, sizeof(buffer), fmt, args);
     va_end(args);
-    log(DEBUG, component, buffer);
+    log(LogDebug, component, buffer);
 }
 void Logger::info(const std::string& component, const char* fmt, ...) {
     va_list args;
@@ -50,7 +56,7 @@ void Logger::info(const std::string& component, const char* fmt, ...) {
     char buffer[2048];
     vsnprintf(buffer, sizeof(buffer), fmt, args);
     va_end(args);
-    log(INFO, component, buffer);
+     log(LogInfo, component, buffer);
 }
 void Logger::warn(const std::string& component, const char* fmt, ...) {
     va_list args;
@@ -58,7 +64,7 @@ void Logger::warn(const std::string& component, const char* fmt, ...) {
     char buffer[2048];
     vsnprintf(buffer, sizeof(buffer), fmt, args);
     va_end(args);
-    log(WARN, component, buffer);
+   log(LogWarn, component, buffer);
 }
 void Logger::error(const std::string& component, const char* fmt, ...) {
     va_list args;
@@ -66,7 +72,7 @@ void Logger::error(const std::string& component, const char* fmt, ...) {
     char buffer[2048];
     vsnprintf(buffer, sizeof(buffer), fmt, args);
     va_end(args);
-    log(ERROR, component, buffer);
+    log(LogError, component, buffer);
 }
 void Logger::critical(const std::string& component, const char* fmt, ...) {
     va_list args;
@@ -74,7 +80,11 @@ void Logger::critical(const std::string& component, const char* fmt, ...) {
     char buffer[2048];
     vsnprintf(buffer, sizeof(buffer), fmt, args);
     va_end(args);
-    log(CRITICAL, component, buffer);
+    log(LogCritical, component, buffer);
+}
+
+void Logger::logError(const std::string& component, const std::string& message) {
+    error(component, message);
 }
 
 // ---- Log file and level ----
@@ -88,11 +98,11 @@ void Logger::setLogFile(const std::string& filename) {
 
 std::string Logger::levelToString(Level lvl) {
     switch (lvl) {
-        case DEBUG:    return "DEBUG";
-        case INFO:     return "INFO ";
-        case WARN:     return "WARN ";
-        case ERROR:    return "ERROR";
-        case CRITICAL: return "CRIT!";
+          case LogDebug:    return "DEBUG";
+        case LogInfo:     return "INFO ";
+        case LogWarn:     return "WARN ";
+        case LogError:    return "ERROR";
+        case LogCritical: return "CRIT!";
         default:       return "UNKWN";
     }
 }

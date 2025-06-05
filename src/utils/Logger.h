@@ -14,6 +14,14 @@ public:
         DEBUG, INFO, WARN, ERROR, CRITICAL
     };
 
+    // Optional initialization (e.g. log file path). Parameters may be ignored
+    // by simple implementations.
+    static void init(const std::string& file, bool colorConsole, size_t rotateEveryN);
+        LogWarn,
+        LogError,
+        LogCritical
+    };
+
     // Log con componente y mensaje
     static void debug(const std::string& component, const std::string& message);
     static void info(const std::string& component, const std::string& message);

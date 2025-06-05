@@ -21,6 +21,8 @@
 #include <nlohmann/json.hpp>
 #ifdef _WIN32
 #include <windows.h>
+#undef ERROR
+#undef INFO
 #endif
 
 using std::chrono::steady_clock;

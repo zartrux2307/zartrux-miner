@@ -26,25 +26,25 @@ void NonceLoggerAdapter::logPythonEvent(const std::string& level,
                                         const std::string& message,
                                         const pybind11::dict& extra) {
     std::lock_guard<std::mutex> lock(logger_mutex_);
-    Logger::Level logLevel;
-    if (level == "DEBUG") logLevel = Logger::Level::DEBUG;
-    else if (level == "INFO") logLevel = Logger::Level::INFO;
-    else if (level == "WARNING") logLevel = Logger::Level::WARN;
-    else if (level == "ERROR") logLevel = Logger::Level::ERROR;
-    else if (level == "CRITICAL") logLevel = Logger::Level::CRITICAL;
+     Logger::Level logLevel;␊
+    if (level == "DEBUG") logLevel = Logger::Level::LogDebug;
+    else if (level == "INFO") logLevel = Logger::Level::LogInfo;
+    else if (level == "WARNING") logLevel = Logger::Level::LogWarn;
+    else if (level == "ERROR") logLevel = Logger::Level::LogError;
+    else if (level == "CRITICAL") logLevel = Logger::Level::LogCritical;;
     else {
       Logger::warn(context_,
             "Nivel de log desconocido: " + level + ". Usando INFO por defecto.");
-        logLevel = Logger::Level::INFO;
+        logLevel = Logger::Level::LogInfo;
     }
 
        std::string formattedMsg = formatNonceMessage(message, extra);
     switch (logLevel) {
-        case Logger::Level::DEBUG:    Logger::debug(context_, formattedMsg); break;
-        case Logger::Level::INFO:     Logger::info(context_, formattedMsg);  break;
-        case Logger::Level::WARN:     Logger::warn(context_, formattedMsg);  break;
-        case Logger::Level::ERROR:    Logger::error(context_, formattedMsg); break;
-        case Logger::Level::CRITICAL: Logger::critical(context_, formattedMsg); break;
+          case Logger::Level::LogDebug:    Logger::debug(context_, formattedMsg); break;
+        case Logger::Level::LogInfo:     Logger::info(context_, formattedMsg);  break;
+        case Logger::Level::LogWarn:     Logger::warn(context_, formattedMsg);  break;
+        case Logger::Level::LogError:    Logger::error(context_, formattedMsg); break;
+        case Logger::Level::LogCritical: Logger::critical(context_, formattedMsg); break;
         default:                      Logger::info(context_, formattedMsg);  break;
     }
 }

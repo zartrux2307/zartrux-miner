@@ -60,7 +60,7 @@ target_include_directories(zartrux_core_libs PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/zarbackend
 )
 
-target_link_libraries(zartrux_core_libs PUBLIC Threads::Threads)
+target_link_libraries(zartrux_core_libs PUBLIC Threads::Threads randomx)
 
 # Opción: agregar ejecutable principal (si tienes zarmain.cpp)
 add_executable(zartrux_miner zarmain.cpp)

@@ -11,6 +11,8 @@
 
 #if defined(_WIN32)
     #include <windows.h>
+    #undef ERROR
+    #undef INFO
 #else
     #include <unistd.h>
     #include <array>

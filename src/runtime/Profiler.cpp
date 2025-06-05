@@ -12,6 +12,8 @@
 #ifdef _WIN32
     #include <intrin.h>
     #include <windows.h>
+    #undef ERROR
+    #undef INFO
 #else
     #include <cpuid.h>
     #include <unistd.h>
