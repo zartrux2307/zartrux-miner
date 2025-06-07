@@ -10,8 +10,6 @@ add_library(memory STATIC
     LegacyAllocator.cpp
     SmartCache.cpp
 )
-
-target_link_libraries(memory PUBLIC randomx)
 add_library(zartrux::memory ALIAS memory)
 
 target_include_directories(memory PUBLIC

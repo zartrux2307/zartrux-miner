@@ -5,27 +5,7 @@
 #include <cstring>
 #include <span>
 #include <chrono>
-#include <cstdlib>
-#include <randomx.h>
-
-#if defined(_WIN32)
-    #include <malloc.h>
-    #define aligned_alloc(align, size) _aligned_malloc(size, align)
-    #define aligned_free(ptr) _aligned_free(ptr)
-#else
-    // Fallback simple para plataformas POSIX
-    #include <stdlib.h>
-    static void* posix_aligned_alloc(size_t align, size_t size) {
-        void* ptr = nullptr;
-        if (posix_memalign(&ptr, align, size) != 0) {
-            return nullptr;
-        }
-        return ptr;
-    }
-    #define aligned_alloc(align, size) posix_aligned_alloc(align, size)
-    #define aligned_free(ptr) free(ptr)
-#endif
-
+#include <cstdlib>  
 namespace zartrux::memory {
 
 SmartCache::SmartCache(size_t windowSize) {
@@ -44,7 +24,9 @@ size_t SmartCache::prefetch(std::span<const uint8_t> data) noexcept {
     std::lock_guard<std::mutex> lock(m_mutex);
 
     size_t copySize = std::min(data.size(), m_window.size());
+
     evict_old_entries(copySize);
+
     std::copy(data.begin(), data.begin() + copySize, m_window.begin());
 
     if (copySize == data.size()) {
@@ -52,6 +34,7 @@ size_t SmartCache::prefetch(std::span<const uint8_t> data) noexcept {
     } else {
         m_miss_count.fetch_add(1, std::memory_order_relaxed);
     }
+
     return copySize;
 }
 
@@ -60,6 +43,7 @@ void SmartCache::evict_old_entries(size_t incomingSize) {
         std::fill(m_window.begin(), m_window.end(), 0);
         return;
     }
+
     std::rotate(m_window.begin(), m_window.begin() + incomingSize, m_window.end());
     std::fill(m_window.end() - incomingSize, m_window.end(), 0);
 }
@@ -78,6 +62,7 @@ void SmartCache::resize(size_t newSize) {
     if (newSize == 0 || newSize > MaxCacheSize) {
         throw std::invalid_argument("❌ New SmartCache size must be > 0 and <= MaxCacheSize.");
     }
+
     std::lock_guard<std::mutex> lock(m_mutex);
     m_window.resize(newSize);
 }
@@ -107,20 +92,6 @@ void SmartCache::debug_print() const noexcept {
     std::cout << "  Size:       " << m_window.size() << std::endl;
     std::cout << "  Hits:       " << m_hit_count.load() << std::endl;
     std::cout << "  Misses:     " << m_miss_count.load() << std::endl;
-}
-
-// --- Alineación para dataset RandomX (solo Windows) ---
-void* SmartCache::allocate_aligned_dataset(size_t align, size_t size) {
-    return aligned_alloc(align, size);
-}
-
-void SmartCache::free_aligned_dataset(void* ptr) {
-    aligned_free(ptr);
-}
-
-void SmartCache::initRandomXDataset(void* dataset, void* cache, uint32_t startItem, uint32_t itemCount) {
-    if (!dataset || !cache) return;
-    randomx_dataset_init(dataset, cache, startItem, itemCount);
 }
 
 } // namespace zartrux::memory

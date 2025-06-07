@@ -11,8 +11,8 @@
 namespace zartrux::memory {
 
 /**
- * @brief Thread-safe FIFO cache optimized for mining (RandomX/CPU only).
- * @details Estructura eficiente para minado real, solo para uso ético y didáctico en proyectos XMR.
+ * @brief Thread-safe prefetch cache optimized for mining operations.
+ * @details Uses an efficient FIFO memory strategy with minimal realignment impact.
  */
 class SmartCache {
 public:
@@ -24,9 +24,7 @@ public:
     SmartCache(const SmartCache&) = delete;
     SmartCache& operator=(const SmartCache&) = delete;
 
-    // Añade un rango de datos al cache, retorna tamaño real insertado
     size_t prefetch(std::span<const uint8_t> data) noexcept;
-    // Devuelve copia local del buffer actual (no para uso intensivo)
     std::deque<uint8_t> get_data() const;
     size_t size() const noexcept;
     void resize(size_t newSize);
@@ -36,14 +34,7 @@ public:
     size_t get_miss_count() const noexcept;
     void reset_counters() noexcept;
 
-    // Debug info detallado (para logs/desarrollo)
-       void debug_print() const noexcept;
-
-    // Memory utilities for RandomX datasets
-    static void* allocate_aligned_dataset(size_t align, size_t size);
-    static void free_aligned_dataset(void* ptr);
-    static void initRandomXDataset(void* dataset, void* cache,
-                                   uint32_t startItem, uint32_t itemCount);
+    void debug_print() const noexcept;
 
 private:
     void evict_old_entries(size_t incomingSize);
