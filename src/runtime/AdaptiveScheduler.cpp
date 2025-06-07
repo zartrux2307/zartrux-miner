@@ -34,7 +34,7 @@ void AdaptiveScheduler::start() {
             workers_.back()->start();
         }
         controlThread_ = std::make_unique<std::thread>(&AdaptiveScheduler::controlLoop, this);
-        Logger::info("AdaptiveScheduler", "Lanzados {} hilos de minado.", workers_.size());
+        Logger::info("AdaptiveScheduler", "Lanzados " + std::to_string(workers_.size()) + " hilos de minado.");
     }
 }
 
@@ -48,7 +48,7 @@ void AdaptiveScheduler::stop() {
     if (controlThread_ && controlThread_->joinable()) {
         controlThread_->join();
     }
-    Logger::info("AdaptiveScheduler", "Scheduler detenido.")
+    Logger::info("AdaptiveScheduler", "Scheduler detenido.");
 }
 
 bool AdaptiveScheduler::isRunning() const {
@@ -94,9 +94,9 @@ void AdaptiveScheduler::restartWorker(size_t idx) {
         if (!affinity_.empty() && idx < affinity_.size())
             workers_[idx]->setAffinity(affinity_[idx]);
         workers_[idx]->start();
-        Logger::warn("AdaptiveScheduler", "Reiniciado hilo de minería #{}", workerId);
+        Logger::warn("AdaptiveScheduler", "Reiniciado hilo de minería #" + std::to_string(workerId));
     } catch (const std::exception& ex) {
-      Logger::error("AdaptiveScheduler", "Error al reiniciar worker: {}", ex.what());
+        Logger::error("AdaptiveScheduler", std::string("Error al reiniciar worker: ") + ex.what());
     }
 }
 
@@ -113,7 +113,7 @@ void AdaptiveScheduler::adjustWorkers() {
                 restartWorker(i);
             }
         } catch (const std::exception& ex) {
-           Logger::error("AdaptiveScheduler", "Error en metrics/restart: {}", ex.what());
+            Logger::error("AdaptiveScheduler", std::string("Error en metrics/restart: ") + ex.what());
             restartWorker(i);
         }
     }
@@ -128,13 +128,13 @@ void AdaptiveScheduler::adjustWorkers() {
             workers_.back()->setAffinity(affinity_[currentThreads]);
         workers_.back()->start();
         ++currentThreads;
-        Logger::info("AdaptiveScheduler", "Aumentando hilos de minería a {}", workers_.size());
+        Logger::info("AdaptiveScheduler", "Aumentando hilos de minería a " + std::to_string(workers_.size()));
     }
     while (currentThreads > maxThreads && currentThreads > 1) {
         workers_.back()->stop();
         workers_.pop_back();
         --currentThreads;
-      Logger::info("AdaptiveScheduler", "Reduciendo hilos de minería a {}", workers_.size());
+        Logger::info("AdaptiveScheduler", "Reduciendo hilos de minería a " + std::to_string(workers_.size()));
     }
 
     // Ajuste dinámico basado en el hash rate.
@@ -146,12 +146,12 @@ void AdaptiveScheduler::adjustWorkers() {
             if (!affinity_.empty() && currentThreads < affinity_.size())
                 workers_.back()->setAffinity(affinity_[currentThreads]);
             workers_.back()->start();
-             Logger::info("AdaptiveScheduler", "Aumentando hilos de minería a {}", workers_.size());
+            Logger::info("AdaptiveScheduler", "Aumentando hilos de minería a " + std::to_string(workers_.size()));
         } else if (totalHashRate > targetHashRate_ * 1.1 && currentThreads > 1) {
             // Remover el último hilo si hay exceso.
             workers_.back()->stop();
             workers_.pop_back();
-          Logger::info("AdaptiveScheduler", "Reduciendo hilos de minería a {}", workers_.size());
+            Logger::info("AdaptiveScheduler", "Reduciendo hilos de minería a " + std::to_string(workers_.size()));
         }
     }
 
@@ -161,14 +161,14 @@ void AdaptiveScheduler::adjustWorkers() {
         if (totalCpuUsage > allowedCpu * 1.1 && currentThreads > 1) {
             workers_.back()->stop();
             workers_.pop_back();
-            Logger::warn("AdaptiveScheduler", "Límite de potencia: hilos disminuidos a {}", workers_.size());
+            Logger::warn("AdaptiveScheduler", "Límite de potencia: hilos disminuidos a " + std::to_string(workers_.size()));
         } else if (totalCpuUsage < allowedCpu * 0.5 && currentThreads < maxThreads) {
             unsigned int newId = (currentThreads > 0 ? workers_.back()->getId() + 1 : 0);
             workers_.emplace_back(std::make_unique<WorkerThread>(newId, jobManager_, workerConfig_));
             if (!affinity_.empty() && currentThreads < affinity_.size())
                 workers_.back()->setAffinity(affinity_[currentThreads]);
             workers_.back()->start();
-              Logger::info("AdaptiveScheduler", "Límite de potencia permite aumentar hilos a {}", workers_.size());
+            Logger::info("AdaptiveScheduler", "Límite de potencia permite aumentar hilos a " + std::to_string(workers_.size()));
         }
     }
 }

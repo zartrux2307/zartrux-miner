@@ -86,15 +86,3 @@ std::optional<int> ConfigManager::getIntOptional(const std::string& key) const {
 std::optional<bool> ConfigManager::getBoolOptional(const std::string& key) const {
     return getOptional<bool>(key);
 }
-
-// ---- Static convenience wrappers ----
-std::string ConfigManager::getString(const std::string& key,
-                                     const std::string& default_value) {
-    return ConfigManager::getInstance().get<std::string>(key, default_value);
-}
-
-float ConfigManager::getFloat(const std::string& key, float default_value) {
-    // Reuse double getter to avoid explicit float template instantiation
-    return static_cast<float>(ConfigManager::getInstance().get<double>(key,
-                                                            default_value));
-}

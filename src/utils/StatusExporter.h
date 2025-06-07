@@ -31,9 +31,6 @@ struct MinerStatus {
 class StatusExporter {
 public:
     static void exportStatus(const MinerStatus& status);
-    static void exportStatusJSON(size_t cpuQueue, size_t iaQueue,
-                                 size_t validNonces,
-                                 size_t processedCount);
     
 private:
     static std::mutex status_mutex;

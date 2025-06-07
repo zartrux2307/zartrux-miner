@@ -12,7 +12,6 @@
 
 namespace py = pybind11;
 
-// Mutex estático
 std::mutex NonceLoggerAdapter::logger_mutex_;
 
 NonceLoggerAdapter::NonceLoggerAdapter(const std::string& context)
@@ -25,28 +24,21 @@ std::mutex& NonceLoggerAdapter::globalMutex() {
 void NonceLoggerAdapter::logPythonEvent(const std::string& level,
                                         const std::string& message,
                                         const pybind11::dict& extra) {
-     std::lock_guard<std::mutex> lock(logger_mutex_);
+    std::lock_guard<std::mutex> lock(logger_mutex_);
     Logger::Level logLevel;
-    if (level == "DEBUG") logLevel = Logger::Level::LogDebug;
-    else if (level == "INFO") logLevel = Logger::Level::LogInfo;
-    else if (level == "WARNING") logLevel = Logger::Level::LogWarn;
-    else if (level == "ERROR") logLevel = Logger::Level::LogError;
-    else if (level == "CRITICAL") logLevel = Logger::Level::LogCritical;
+    if (level == "DEBUG") logLevel = Logger::Level::DEBUG;
+    else if (level == "INFO") logLevel = Logger::Level::INFO;
+    else if (level == "WARNING") logLevel = Logger::Level::WARNING;
+    else if (level == "ERROR") logLevel = Logger::Level::ERROR_LEVEL;
+    else if (level == "CRITICAL") logLevel = Logger::Level::CRITICAL;
     else {
-      Logger::warn(context_,
+        Logger::log(Logger::Level::WARNING, context_,
             "Nivel de log desconocido: " + level + ". Usando INFO por defecto.");
-        logLevel = Logger::Level::LogInfo;
+        logLevel = Logger::Level::INFO;
     }
 
-       std::string formattedMsg = formatNonceMessage(message, extra);
-    switch (logLevel) {
-          case Logger::Level::LogDebug:    Logger::debug(context_, formattedMsg); break;
-        case Logger::Level::LogInfo:     Logger::info(context_, formattedMsg);  break;
-        case Logger::Level::LogWarn:     Logger::warn(context_, formattedMsg);  break;
-        case Logger::Level::LogError:    Logger::error(context_, formattedMsg); break;
-        case Logger::Level::LogCritical: Logger::critical(context_, formattedMsg); break;
-        default:                      Logger::info(context_, formattedMsg);  break;
-    }
+    std::string formattedMsg = formatNonceMessage(message, extra);
+    Logger::log(logLevel, context_, formattedMsg);
 }
 
 void NonceLoggerAdapter::logExportProgress(size_t processed,
@@ -57,7 +49,7 @@ void NonceLoggerAdapter::logExportProgress(size_t processed,
         std::string error = "Datos inválidos en logExportProgress: processed="
                           + std::to_string(processed)
                           + " total=" + std::to_string(total);
-           Logger::error(context_, error);
+        Logger::log(Logger::Level::ERROR_LEVEL, context_, error);
         return;
     }
     double percentage = (static_cast<double>(processed) / total) * 100.0;
@@ -66,7 +58,7 @@ void NonceLoggerAdapter::logExportProgress(size_t processed,
         << " (" << std::fixed << std::setprecision(2) << percentage << "%)";
     if (!additionalInfo.empty())
         oss << " - " << additionalInfo;
-     Logger::info(context_, oss.str());
+    Logger::log(Logger::Level::INFO, context_, oss.str());
 }
 
 void NonceLoggerAdapter::logFileOperation(const std::string& operation,
@@ -74,22 +66,22 @@ void NonceLoggerAdapter::logFileOperation(const std::string& operation,
                                           bool success) {
     std::lock_guard<std::mutex> lock(logger_mutex_);
     if (!isFilenameSafe(filename)) {
-     Logger::warn(context_,
+        Logger::log(Logger::Level::WARNING, context_,
                    "Nombre de archivo potencialmente inseguro: " + filename);
     }
     if (operation.empty() || filename.empty()) {
-       Logger::error(context_,
+        Logger::log(Logger::Level::ERROR_LEVEL, context_,
                    "Operación o nombre de archivo vacío en logFileOperation.");
         return;
     }
     std::string message = operation + " " + filename + " - " + (success ? "SUCCESS" : "FAILED");
-      Logger::info(context_, message);
+    Logger::log(Logger::Level::INFO, context_, message);
 }
 
 void NonceLoggerAdapter::setNonceLoggingPrecision(int precision) {
     std::lock_guard<std::mutex> lock(logger_mutex_);
     if (precision < 0 || precision > 10) {
-           Logger::warn(context_,
+        Logger::log(Logger::Level::WARNING, context_,
                    "Precisión inválida: " + std::to_string(precision) + ". Usando valor por defecto (6).");
         precision_ = 6;
         return;
@@ -140,7 +132,7 @@ std::string NonceLoggerAdapter::formatNonceMessage(const std::string& base, cons
                 }
             } catch (const std::exception& e) {
                 oss << key << "=<conversion-error>";
-                  Logger::warn(context_,
+                Logger::log(Logger::Level::WARNING, context_,
                            "Error convirtiendo valor: " + key + ": " + e.what());
             }
         }
@@ -154,7 +146,7 @@ bool NonceLoggerAdapter::isFilenameSafe(const std::string& filename) {
     return std::regex_match(filename, safe_pattern);
 }
 
-// --- PYBIND11 BINDINGS ---
+// BINDING - Aquí solo los valores por defecto (NO en el .h/.cpp)
 PYBIND11_MODULE(nonce_adapter, m) {
     py::class_<NonceLoggerAdapter>(m, "NonceLoggerAdapter")
         .def(py::init<const std::string&>(), py::arg("context") = "NonceLogger")
@@ -167,12 +159,5 @@ PYBIND11_MODULE(nonce_adapter, m) {
         .def_property("nonce_precision",
             &NonceLoggerAdapter::getNonceLoggingPrecision,
             &NonceLoggerAdapter::setNonceLoggingPrecision)
-        .def_static("setup_global_logger",
-            [](const std::string& log_path, bool color_console = true, size_t rotate_every_n = 50000) {
-                Logger::init(log_path, color_console, rotate_every_n);
-            },
-            py::arg("log_path") = "",
-            py::arg("color_console") = true,
-            py::arg("rotate_every_n") = 50000
-        );
+        .def_static("setup_global_logger", &Logger::init, py::arg("log_path") = "");
 }

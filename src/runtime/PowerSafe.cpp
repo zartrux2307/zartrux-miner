@@ -41,28 +41,29 @@ public:
         double currentTemp = tempMonitor_ ? tempMonitor_() : 0.0;
         double currentPower = powerMonitor_ ? powerMonitor_() : 0.0;
 
-      Logger::info("PowerSafeDefault", "Temp: {} °C, Power: {} W", currentTemp, currentPower);
+        Logger::info("PowerSafeDefault", "Temp: " + std::to_string(currentTemp) +
+                     " °C, Power: " + std::to_string(currentPower) + " W");
 
         if (currentTemp > temperatureLimit_ + 10.0) {
             emergencyShutdown_ = true;
-             Logger::error("PowerSafeDefault", "EMERGENCY SHUTDOWN! Temp over hard limit.");
+            Logger::error("PowerSafeDefault", "EMERGENCY SHUTDOWN! Temp over hard limit.");
         }
 
         if (scheduler_) {
             if (currentTemp > temperatureLimit_) {
                 size_t newTarget = scheduler_->getMaxThreads() > 1 ? scheduler_->getMaxThreads() - 1 : 1;
                 scheduler_->setTargetThreadCount(newTarget);
-                 Logger::warn("PowerSafeDefault", "Reducing threads (temp high). New thread count: {}", newTarget);
+                Logger::warn("PowerSafeDefault", "Reducing threads (temp high). New thread count: " + std::to_string(newTarget));
             }
             else if (currentPower > powerLimit_) {
                 size_t newTarget = scheduler_->getMaxThreads() > 1 ? scheduler_->getMaxThreads() - 1 : 1;
                 scheduler_->setTargetThreadCount(newTarget);
-                Logger::warn("PowerSafeDefault", "Reducing threads (power high). New thread count: {}", newTarget);
+                Logger::warn("PowerSafeDefault", "Reducing threads (power high). New thread count: " + std::to_string(newTarget));
             }
             else if (currentTemp < temperatureLimit_ - 5.0 && currentPower < powerLimit_ * 0.8) {
                 size_t newTarget = scheduler_->getMaxThreads() + 1;
                 scheduler_->setTargetThreadCount(newTarget);
-                 Logger::info("PowerSafeDefault", "Increasing threads (conditions optimal). New thread count: {}", newTarget);
+                Logger::info("PowerSafeDefault", "Increasing threads (conditions optimal). New thread count: " + std::to_string(newTarget));
             }
         }
     }

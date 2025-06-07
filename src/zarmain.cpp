@@ -1,288 +1,233 @@
+#include <iostream>
+#include <chrono>
+#include <thread>
+#include <fstream>
+#include <filesystem>
+#include <atomic>
+#include <csignal>
+#include <nlohmann/json.hpp>
+#include <fmt/format.h>
+
+#include "utils/Logger.h"
 #include "core/MinerCore.h"
 #include "core/JobManager.h"
-#include "utils/Logger.h"
-#include "utils/config_manager.h"
+#include "core/NonceValidator.h"
+#include "network/PoolDispatcher.h"
 #include "metrics/PrometheusExporter.h"
-#include "runtime/SystemMonitor.h"
-#include "runtime/Profiler.h"
+#include "utils/ConfigManager.h"
+#include "utils/Profiler.h"
 #include "utils/StatusExporter.h"
-#include <iostream>
-#include <fstream>
-#include <csignal>
-#include <thread>
-#include <atomic>
-#include <chrono>
-#include <algorithm>
-#include <condition_variable>
-#include <filesystem>
-#include <vector>
-#include <string>
-#include <optional>
-#include <nlohmann/json.hpp>
-#ifdef _WIN32
-#include <windows.h>
-#undef ERROR
-#undef INFO
-#endif
 
-using std::chrono::steady_clock;
-using std::chrono::milliseconds;
-using namespace std::chrono_literals;
+using json = nlohmann::json;
+using namespace std::chrono;
+namespace fs = std::filesystem;
 
-// --- Variables globales de control ---
-static std::atomic<bool> g_running{true};
-static std::atomic<bool> g_reload_config{false};
-static std::mutex console_mutex;
-static std::condition_variable_any console_cv;
+// Variables globales
+std::atomic<bool> g_running = true;
+std::unique_ptr<MinerCore> g_miner;
+std::unique_ptr<JobManager> g_jobManager;
+std::unique_ptr<PoolDispatcher> g_poolDispatcher;
+std::shared_ptr<ConfigManager> g_config;
 
-// --- Checkpoint: Estado persistente ---
-const std::string CHECKPOINT_FILE = "checkpoint/miner_status.json";
-void saveCheckpoint(const MinerStatus& status) {
-    std::filesystem::create_directories("checkpoint");
-    std::ofstream out(CHECKPOINT_FILE);
-    out << status.toJson().dump(4) << std::endl;
-}
-MinerStatus loadCheckpoint() {
-    MinerStatus status;
-    std::ifstream in(CHECKPOINT_FILE);
-    if (in) {
-        nlohmann::json j;
-        in >> j;
-        status.fromJson(j);
+// Estructura para estado del minero
+struct MinerStatus {
+    double hashrate = 0.0;
+    uint64_t shares = 0;
+    float temperature = 0.0f;
+    int64_t mining_seconds = 0;
+    int active_threads = 0;
+    int total_threads = 0;
+
+    json toJson() const {
+        return {
+            {"hashrate", hashrate},
+            {"shares", shares},
+            {"temperature", temperature},
+            {"mining_seconds", mining_seconds},
+            {"active_threads", active_threads},
+            {"total_threads", total_threads}
+        };
     }
-    return status;
-}
 
-// --- Señales UNIX/Windows ---
-void signalHandler(int signal) {
-    Logger::info("🛑 Señal {} recibida. Iniciando apagado seguro...", signal);
+    static MinerStatus fromJson(const json& j) {
+        MinerStatus status;
+        status.hashrate = j.value("hashrate", 0.0);
+        status.shares = j.value("shares", 0ULL);
+        status.temperature = j.value("temperature", 0.0f);
+        status.mining_seconds = j.value("mining_seconds", 0LL);
+        status.active_threads = j.value("active_threads", 0);
+        status.total_threads = j.value("total_threads", 0);
+        return status;
+    }
+};
+
+// Manejador de señales
+void signalHandler(int signum) {
+    Logger::info("Main", "Señal recibida: {}", signum);
     g_running = false;
 }
-void sighupHandler(int signal) {
-    Logger::info("🔁 Señal SIGHUP recibida. Hot reload de configuración...");
-    g_reload_config = true;
+
+// Inicialización
+bool initialize() {
+    try {
+        // Configurar manejador de señales
+        signal(SIGINT, signalHandler);
+        signal(SIGTERM, signalHandler);
+
+        // Cargar configuración
+        g_config = std::make_shared<ConfigManager>("config.json");
+        if (!g_config->load()) {
+            Logger::error("Main", "Error al cargar configuración");
+            return false;
+        }
+
+        // Inicializar componentes principales
+        g_jobManager = std::make_unique<JobManager>();
+        g_poolDispatcher = std::make_unique<PoolDispatcher>(*g_jobManager);
+
+        // Configurar minero
+        MinerCore::MiningConfig minerConfig;
+        minerConfig.threadCount = g_config->get<unsigned>("threads", std::thread::hardware_concurrency());
+        minerConfig.mode = g_config->get<std::string>("mining_mode", "normal");
+        g_miner = std::make_unique<MinerCore>(g_jobManager, minerConfig.threadCount);
+
+        if (!g_miner->initialize(minerConfig)) {
+            Logger::error("Main", "Error al inicializar minero");
+            return false;
+        }
+
+        // Configurar métricas
+        PrometheusExporter::getInstance().initialize(
+            g_config->get<uint16_t>("metrics_port", 9100));
+
+        // Restaurar estado si existe
+        if (fs::exists("miner_state.json")) {
+            std::ifstream stateFile("miner_state.json");
+            json stateJson;
+            stateFile >> stateJson;
+            auto status = MinerStatus::fromJson(stateJson);
+            g_miner->restoreState(status);
+        }
+
+        return true;
+    }
+    catch (const std::exception& e) {
+        Logger::error("Main", "Error en inicialización: {}", e.what());
+        return false;
+    }
 }
 
-// --- Consola interactiva ---
-void consoleLoop() {
-    Logger::info("🎛️  Consola: [q] para salir | [r] recargar configuración");
+// Bucle principal
+void mainLoop() {
+    auto nextMetricsUpdate = steady_clock::now();
+    auto nextPoolCheck = steady_clock::now();
+    auto nextConfigCheck = steady_clock::now();
+    auto nextProfilerUpdate = steady_clock::now();
+    
+    Profiler profiler;
+
     while (g_running) {
-        char ch = std::cin.get();
-        if (ch == 'q' || ch == 'Q') { g_running = false; }
-        if (ch == 'r' || ch == 'R') { g_reload_config = true; }
+        try {
+            auto now = steady_clock::now();
+
+            // Actualizar configuración
+            if (now >= nextConfigCheck) {
+                if (g_config->checkForChanges()) {
+                    std::string newMode = g_config->get<std::string>("mining_mode", "normal");
+                    g_miner->setMiningMode(newMode);
+                }
+                nextConfigCheck = now + seconds(30);
+            }
+
+            // Perfilado de rendimiento
+            if (now >= nextProfilerUpdate) {
+                profiler.update();
+                Logger::debug("Main", "CPU: {:.1f}%, Memoria: {:.1f}MB",
+                            profiler.getCPUUsage(),
+                            profiler.getMemoryUsageMB());
+                nextProfilerUpdate = now + seconds(5);
+            }
+
+            // Actualizar métricas
+            if (now >= nextMetricsUpdate) {
+                updateMetrics();
+                nextMetricsUpdate = now + milliseconds(1000);
+                PrometheusExporter::getInstance().update();
+            }
+
+            // Verificar conexión a pool
+            if (now >= nextPoolCheck) {
+                g_poolDispatcher->checkConnection();
+                nextPoolCheck = now + seconds(5);
+            }
+
+            // Dormir hasta próxima actualización
+            auto nextUpdate = std::min({
+                nextMetricsUpdate,
+                nextPoolCheck,
+                nextConfigCheck,
+                nextProfilerUpdate
+            });
+            
+            auto sleepTime = duration_cast<milliseconds>(nextUpdate - steady_clock::now());
+            if (sleepTime.count() > 0) {
+                std::this_thread::sleep_for(sleepTime);
+            }
+        }
+        catch (const std::exception& e) {
+            Logger::error("Main", "Error en bucle principal: {}", e.what());
+            std::this_thread::sleep_for(seconds(1));
+        }
     }
 }
 
-// --- Validación de endpoint IA/Pool ---
-bool validateEndpoint(const std::string& url) {
-    constexpr const char* valid_prefixes[] = {"http://", "https://", "zmq+tcp://"};
-    for (const auto& prefix : valid_prefixes) {
-        if (url.rfind(prefix, 0) == 0) return true;
+// Limpieza
+void cleanup() {
+    try {
+        if (g_miner) {
+            g_miner->stopMining();
+            
+            // Guardar estado
+            std::ofstream stateFile("miner_state.json");
+            MinerStatus status;
+            status.hashrate = g_miner->getHashRate();
+            status.shares = g_miner->getAcceptedShares();
+            stateFile << status.toJson().dump(4);
+        }
+
+        PrometheusExporter::getInstance().shutdown();
+        Logger::info("Main", "Limpieza completada");
     }
-    return false;
+    catch (const std::exception& e) {
+        Logger::error("Main", "Error en limpieza: {}", e.what());
+    }
 }
 
 int main(int argc, char* argv[]) {
     try {
-        std::signal(SIGINT, signalHandler);
-        std::signal(SIGTERM, signalHandler);
-        std::signal(SIGABRT, signalHandler);
-#ifdef SIGHUP
-        std::signal(SIGHUP, sighupHandler);
-#endif
+        // Inicializar logger
+        Logger::init("zartrux-miner.log", Logger::Level::Debug);
+        Logger::info("Main", "Iniciando zartrux-miner v1.0.0");
 
-        Logger::info("🚀 Inicializando ZARTRUX Miner v{}", "3.0.0 PRODUCTION");
-
-        // --- Hot reload config ---
-        ConfigManager config("config/miner_config.json");
-        if (!config.load()) {
-            Logger::critical("❌ Fallo crítico: No se pudo cargar la configuración");
-            return EXIT_FAILURE;
-        }
-        auto backup_config = config;
-
-        Logger::info("💻 Recursos del sistema:");
-        Logger::info("   - Núcleos lógicos: {}", std::thread::hardware_concurrency());
-        auto sysData = SystemMonitor::getSystemData();
-        Logger::info("   - Memoria total: {:.2f} GB", sysData.ram_total);
-
-        // --- Pool/IA ---
-        auto& jobManager = JobManager::instance();
-        const auto ia_endpoint = config.get<std::string>("ia.endpoint", "http://127.0.0.1:4444");
-        if (!validateEndpoint(ia_endpoint)) {
-            Logger::error("🔌 Endpoint IA inválido: {}", ia_endpoint);
-            return EXIT_FAILURE;
-        }
-        jobManager.setIAEndpoint(ia_endpoint);
-        Logger::info("🧠 Conectado a IA en: {}", ia_endpoint);
-
-        // --- Configuración de minería ---
-        MinerCore::MiningConfig miningConfig;
-        miningConfig.threadCount = config.get<unsigned>("mining.threads", std::thread::hardware_concurrency());
-        miningConfig.mode = config.get<std::string>("mining.mode", "Pool");
-        miningConfig.seed = config.get<std::string>("mining.seed", std::nullopt);
-
-        // --- Inicialización minero ---
-        MinerCore miner(jobManager, miningConfig.threadCount);
-        if (!miner.initialize(miningConfig)) {
-            Logger::critical("❌ Fallo en la inicialización del núcleo de minería");
-            return EXIT_FAILURE;
+        // Inicializar componentes
+        if (!initialize()) {
+            Logger::error("Main", "Fallo en la inicialización");
+            return 1;
         }
 
-        // --- Métricas Prometheus ---
-        const auto metrics_enabled = config.get<bool>("metrics.enabled", true);
-        if (metrics_enabled) {
-            PrometheusExporter::getInstance().initialize(
-                config.get<std::string>("metrics.endpoint", "0.0.0.0:9100")
-            );
-            Logger::info("📊 Métricas Prometheus habilitadas en puerto 9100");
-        }
+        // Iniciar minería
+        g_miner->startMining();
+        Logger::info("Main", "Minería iniciada");
 
-        // --- Cargar checkpoint si existe ---
-        if (std::filesystem::exists(CHECKPOINT_FILE)) {
-            Logger::info("🔄 Restaurando estado desde checkpoint...");
-            MinerStatus prev = loadCheckpoint();
-            miner.restoreFromStatus(prev); // implementa en MinerCore si aún no está
-        }
+        // Bucle principal
+        mainLoop();
 
-        // --- Hilo consola interactiva ---
-        std::thread consoleThread(consoleLoop);
-
-        // --- Bucle principal ---
-        Logger::info("⛏️ Iniciando proceso de minería...");
-        miner.startMining();
-
-        const auto cycle_delay = config.get<unsigned>("performance.cycle_delay_ms", 50);
-        const auto heartbeat_interval = config.get<unsigned>("monitoring.heartbeat_interval", 5000);
-
-        auto last_heartbeat = steady_clock::now();
-        auto last_stats = steady_clock::now();
-        auto last_export = steady_clock::now();
-        auto last_checkpoint = steady_clock::now();
-        zartrux::runtime::Profiler::PerformanceMonitor perfMon(60); // CAMBIO: aquí creamos el monitor
-        float last_hashrate = 0.0f;
-        std::vector<float> hashrate_history(6, 0.0f);
-
-        while (g_running) {
-            const auto start_time = steady_clock::now();
-
-            // Hot-reload config
-            if (g_reload_config) {
-                Logger::info("🔁 Recargando configuración desde disco...");
-                if (config.load()) {
-                    miningConfig.threadCount = config.get<unsigned>("mining.threads", std::thread::hardware_concurrency());
-                    miningConfig.mode = config.get<std::string>("mining.mode", "Pool");
-                    miningConfig.seed = config.get<std::string>("mining.seed", std::nullopt);
-                    miner.reloadConfig(miningConfig);
-                    Logger::info("✅ Configuración recargada correctamente.");
-                } else {
-                    Logger::error("❌ Error al recargar configuración.");
-                }
-                g_reload_config = false;
-            }
-
-            perfMon.update(miner.getWorkerStats()); // CAMBIO: Actualiza monitor
-
-            // Estadísticas consola cada 10s
-            if (steady_clock::now() - last_stats > 10s) {
-                auto sysData = SystemMonitor::getSystemData();
-                Logger::debug("📈 Estadísticas: Hashes/s: {:.2f} | Memoria: {:.2f}% | Temp: {:.1f}°C",
-                    perfMon.getHashrate(), // CAMBIO
-                    (sysData.ram_usage / sysData.ram_total) * 100.0f,
-                    sysData.cpu_temp);
-                last_stats = steady_clock::now();
-            }
-
-            // Heartbeat Prometheus
-            if (metrics_enabled && steady_clock::now() - last_heartbeat > milliseconds(heartbeat_interval)) {
-                miner.updateMetrics();
-                PrometheusExporter::getInstance().pushMetrics();
-                last_heartbeat = steady_clock::now();
-            }
-
-            // Exportar estado backend/web cada 2s
-            if (steady_clock::now() - last_export > 2s) {
-                auto sysData = SystemMonitor::getSystemData();
-                MinerStatus status;
-                status.mining_active = miner.isMining();
-                status.mining_seconds = miner.getMiningTime();
-                status.active_threads = miner.getActiveThreads();
-                status.total_threads = miner.getThreadCount();
-                status.ram_usage = sysData.ram_usage;
-                status.total_ram = sysData.ram_total;
-                status.cpu_usage = sysData.cpu_usage;
-                status.cpu_speed = sysData.cpu_speed;
-                status.cpu_temp = sysData.cpu_temp;
-                status.hashrate = perfMon.getHashrate(); // CAMBIO
-                status.shares = miner.getAcceptedShares();
-                status.difficulty = miner.getCurrentDifficulty();
-                status.current_block = miner.getCurrentBlock();
-                status.block_status = miner.getBlockStatus();
-                status.temperature = miner.getTemperature();
-                status.temp_status = miner.getTempStatus();
-                status.mode = miner.getCurrentMode();
-
-                // Tendencia de hashrate
-                float current_hashrate = perfMon.getHashrate(); // CAMBIO
-                if (last_hashrate > 0) {
-                    float trend = ((current_hashrate - last_hashrate) / last_hashrate) * 100.0f;
-                    char trend_str[32];
-                    snprintf(trend_str, sizeof(trend_str), "%+.2f%%", trend);
-                    status.hash_trend = trend_str;
-                } else {
-                    status.hash_trend = "+0.00%";
-                }
-                last_hashrate = current_hashrate;
-                hashrate_history.erase(hashrate_history.begin());
-                hashrate_history.push_back(current_hashrate);
-                status.hashrate_history = hashrate_history;
-
-                StatusExporter::exportStatus(status);
-                last_export = steady_clock::now();
-
-                // Checkpoint a disco cada 2s
-                if (steady_clock::now() - last_checkpoint > 2s) {
-                    saveCheckpoint(status);
-                    last_checkpoint = steady_clock::now();
-                }
-            }
-
-            // Control ciclo
-            const auto elapsed = steady_clock::now() - start_time;
-            if (elapsed < milliseconds(cycle_delay)) {
-                std::this_thread::sleep_for(milliseconds(cycle_delay) - std::chrono::duration_cast<milliseconds>(elapsed));
-            }
-        }
-
-        // Apagado seguro
-        Logger::info("🛑 Iniciando secuencia de apagado...");
-        miner.stopMining();
-        PrometheusExporter::getInstance().shutdown();
-        console_cv.notify_all();
-        if (consoleThread.joinable()) consoleThread.join();
-        Logger::info("✅ Minería detenida correctamente. Recursos liberados");
-        Logger::info("👋 Sesión finalizada. Hasta pronto!");
-        return EXIT_SUCCESS;
+        // Limpieza
+        cleanup();
+        return 0;
     }
     catch (const std::exception& e) {
-        Logger::critical("💥 ERROR CRÍTICO: {}", e.what());
-        return EXIT_FAILURE;
+        Logger::error("Main", "Error fatal: {}", e.what());
+        return 1;
     }
-    catch (...) {
-        Logger::critical("💥 ERROR DESCONOCIDO");
-        return EXIT_FAILURE;
-    }
-}
-
-void printSystemInfo() {
-    auto info = zartrux::runtime::Profiler::getSystemInfo();
-    std::cout << "CPU: " << info.cpuName << std::endl;
-    std::cout << "Physical cores: " << info.physicalCores << std::endl;
-    std::cout << "Logical cores: " << info.logicalCores << std::endl;
-    std::cout << "L3 cache (MB): " << info.l3CacheSizeMB << std::endl;
-    std::cout << "RAM (MB): " << info.totalRamMB << std::endl;
-    std::cout << "CPU features:";
-    for (auto feat : info.features)
-        std::cout << " " << zartrux::runtime::Profiler::featureToString(feat);
-    std::cout << std::endl;
 }

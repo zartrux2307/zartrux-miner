@@ -32,14 +32,9 @@ public:
     template<typename T>
     std::optional<T> getOptional(const std::string& key) const;
 
- std::optional<std::string> getStringOptional(const std::string& key) const;
+    std::optional<std::string> getStringOptional(const std::string& key) const;
     std::optional<int> getIntOptional(const std::string& key) const;
     std::optional<bool> getBoolOptional(const std::string& key) const;
-
-    // Static helpers forwarding to the singleton instance
-    static std::string getString(const std::string& key,
-                                 const std::string& default_value);
-    static float getFloat(const std::string& key, float default_value);
 
     std::string getStatusFilePath() const {
         std::lock_guard<std::mutex> lock(mutex_);
