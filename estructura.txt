@@ -1,24 +1,26 @@
-zartrux-miner/1
+
+zartrux-miner/
 ├── CMakeLists.txt                      # Archivo raíz de compilación del proyecto
 ├── LICENSE                             # Licencia de uso
 ├── README.md                           # Documentación principal del sistema
 
 ├── src/                                # Código fuente principal (C++)
+        CMakeLists.txt                  # Compilación local para `src/`
 │   ├── zarmain.cpp                     # Punto de entrada del minero (main C++)
-│   ├── core/
+│   ├── src/core/
 │   │   ├── MinerCore.cpp/.h            # Núcleo de control de minería  ok✅ 
 │   │   ├── JobManager.cpp/.h           # Gestión de trabajos y distribución de nonces ok✅ 
 │   │   ├── PoolDispatcher.cpp/.h       # Gestión y asignación de pools de minería ok✅ 
 │   │   ├── NonceValidator.cpp/.h       # Validación de nonces y filtrado  ok✅
 │   │   ├── MiningModeManager.cpp/.h    # Gestión del modo (solo, pool, híbrido y ia)ok✅
 │   │   ├── hash.cpp/.h                 # Funciones de hashing ok✅
-            SmartCache.cpp/.h          # fundamental para el rendimiento del sistema minero, especialmente en entornos con alta carga de trabajo y múltiples hilos de ejecución ok✅ 
-│   │   ├── threads/
+            SmartCache.cpp/.h           # fundamental para el rendimiento del sistema minero, especialmente en entornos con alta carga de trabajo y múltiples hilos de ejecución ok✅ 
+│   │   ├── core/threads/
 │   │   │   ├── WorkerThread.cpp/.h     # Ejecución paralela de minería por hilo ok✅
-│   │   ├── ia/
+│   │   ├── core/ia/
 │   │   │   ├── IAReceiver.cpp/.h       # Recepción de nonces desde IA (ZMQ/Socket)ok✅
 │   │   └── CMakeLists.txt
-│   ├── utils/
+│   ├ src/utils/
 │   │   ├── Logger.cpp/.h               # Sistema de logging para consola y archivo ok✅
 │   │   ├── nonce_logger_adapter.cpp/.h # Adaptador de logs para nonces exitosos ok✅
 │   │   ├── export_successful_nonces.py # Exportación de nonces validados a CSV ok✅
@@ -27,27 +29,93 @@ zartrux-miner/1
 │   │   ├── config_manager.cpp/.h       # Gestión de configuración JSON ok✅
 │   │   ├── StatusExporter.cpp/.h       # Exporta estado del sistema a archivo JSON ok✅
 │   │   └── CMakeLists.txt ok✅
-│   ├── randomxzar/ 
-│   │   └── src/                         # Librería oficial RandomX integrada
-│   │       └── randomx/...             # Código original RandomX
+│   ├─── src/crypto/ 
+│   │   └──     crypto/rx/ 
+                           Profiler.h
+                           Profiler.cpp
+│   │       └── crypto/randomx/
+                             aes_hash.hpp
+                             allocator.cpp
+                             allocator.hpp
+                             blake2_generator.cpp
+                             blake2_generator.hpp
+                             bytecode_machine.cpp
+                              bytecode_machine.hpp
+                              common.hpp
+                              configuration.h
+                               dataset.cpp
+                              dataset.hpp
+                               instruction.hpp
+                              instructions_portable.cpp
+                              intrin_portable.h
+                             jit_compiler.hpp
+                             jit_compiler_a64.cpp
+                             jit_compiler_a64.hpp
+                             jit_compiler_a64_static.hpp
+                             jit_compiler_a64_static.S
+                             jit_compiler_fallback.cpp
+                             jit_compiler_fallback.hpp
+                              jit_compiler_x86.cpp
+                             jit_compiler_x86.hpp
+                             jit_compiler_x86_static.asm
+                             jit_compiler_x86_static.hpp
+                             jit_compiler_x86_static.S
+                             program.hpp
+                             randomx.cpp
+                             randomx.h
+                              reciprocal.c
+                            reciprocal.h
+                           soft_aes.cpp
+                           soft_aes.h
+                          superscalar.cpp
+                          superscalar.hpp
+                         superscalar_program.hpp
+                          virtual_machine.cpp
+                          virtual_machine.hpp
+                          virtual_memory.cpp
+                         virtual_memory.hpp
+                         vm_compiled.cpp
+                        vm_compiled.hpp
+                        vm_compiled_light.cpp
+                       vm_compiled_light.hpp
+                          vm_interpreted.cpp
+                        vm_interpreted.hpp
+                      vm_interpreted_light.cpp
+                     vm_interpreted_light.hpp
+                                    randomx/ blake2/
+                                                 blake2-impl.h
+                                                  blake2.h
+                                                 blake2b-round.h
+                                                  blake2b.c
+                                                  blake2b_sse41.c
+                                                   blamka-round-ref.h
+                                                    endian.h
+                                                           randomx/ blake2/avx2\
+                                                                                   blake2.h
+                                                                                   blake2b-common.h
+                                                                                    blake2b-load-avx2.h
+                                                                                    blake2b.h
+                                                                                    blake2b_avx2.c
+
+     
 │
-│   ├── network/
+│   ├── src/network/
 │   │   ├── StratumClient.cpp/.h        # Conexión y autenticación a pools Stratum ok✅
 │   │   ├── PoolFailover.cpp/.h         # Mecanismo de failover a pools secundarios ok✅
 │   │   └── CMakeLists.txt ok✅
 │
-│   ├── memory/
+│   ├── src/memory/
 │   │   ├── LegacyAllocator.cpp/.h      # Asignación de memoria para legacy systemsok✅
 │   │   ├── SmartCache.cpp/.h           # Cacheo inteligente para RandomX y buffersok✅
 │   │   └── CMakeLists.txt
 │
-│   ├── runtime/
+│   ├── src/runtime/
 │   │   ├── Profiler.cpp/.h             # Medición de rendimiento ok✅
 │   │   ├── AdaptiveScheduler.cpp/.h    # Ajuste dinámico de la carga del sistema ok✅
 │   │   ├── PowerSafe.cpp/.h            # Optimización de consumo energético ok✅
 │   │   ├── SystemMonitor.cpp/.h        # Monitor del sistema en tiempo real ok✅
 │   │   └── CMakeLists.txt
-├── zarbackend/
+├── src/zarbackend/
 │   ├── server.py                       # Servidor web Flask ok✅
 │   ├── zartrux_status.json             # Estado actual exportado por el minero ok✅
 │   ├── templates/
@@ -58,12 +126,9 @@ zartrux-miner/1
 │       └── js/main.js                  # Scripts JS diná ok✅
 
 │
-│   ├── metrics/
-│   │   ├── PrometheusExporter.cpp/.h   # Exportador de métricas para Prometheus ok✅ 
-│   │   ├── prometheus_labels.yaml      # Definición de etiquetas para métricas ok✅ 
-│   │   └── CMakeLists.txt ok✅ 
 
-│   ├── arch/
+
+│   ├── src/arch/
 │   │   └── x8ag/                        # Optimizaciones por arquitectura CPU
 │   │       ├── kernel_x86_sse2.cpp/.h ok✅
 │   │       ├── kernel_x86_avx.cpp/.h ok✅
@@ -71,18 +136,41 @@ zartrux-miner/1
 │   │       ├── kernel_x86_generic.cpp/.h ok✅
 │   │   └── CMakeLists.txt ok✅ 
 
-│   ├── patches/
-│   │   ├── randomx_patch.asm           # Parche ASM para acelerar operaciones ok✅ 
-│   │   └── CMakeLists.txt ok✅ 
+│   ├── src/patches/
+│   │   ├── CMakeLists.txt
+           program_epilogue_linux.inc
+           program_epilogue_store.inc
+           program_epilogue_win64.inc
+           program_imul_rcp_store.inc
+           program_loop_load.inc
+           program_loop_load_xop.inc
+           program_loop_store.inc
+           program_prologue_linux.inc
+           program_prologue_win64.inc
+           program_read_dataset.inc
+           program_read_dataset_sshash_fin.inc
+           program_read_dataset_sshash_init.inc
+           program_sshash_avx2_constants.inc
+           program_sshash_avx2_epilogue.inc
+           program_sshash_avx2_loop_begin.inc
+           program_sshash_avx2_loop_end.inc
+           program_sshash_avx2_save_registers.inc
+           program_sshash_avx2_ssh_load.inc
+           program_sshash_avx2_ssh_prefetch.inc
+           program_sshash_constants.inc
+           program_sshash_load.inc
+           program_sshash_prefetch.inc
+           program_xmm_constants.inc
+           randomx_patch_masm.asm
+           randomx_patch_nasm.asm
+           randomx_reciprocal.inc
 
-│   └── CMakeLists.txt                  # Compilación local para `src/`
-
-├── ia-modules/                         # Inteligencia Artificial para minería
+├── src/ia-modules/                         # Inteligencia Artificial para minería
 │   ├── CMakeLists.txt
-│   ├── launcher/
-│   │   └── zartrux_launcher.py         # Lanza el sistema  IA
+│   ├── ia-modules/ launcher/
+│   │   └──-------------------- zartrux_launcher.py         # Lanza el sistema  IA
 │
-│   ├── bridge/                         # Conexión y adaptadores IA ↔ minería
+│   ├──src/ ia-modules/bridge/                         # Conexión y adaptadores IA ↔ minería
 │   │   ├── inject_nonces_from_ia.py    # Inserta nonces IA al minero
 │   │   ├── ethical_nonce_adapter.py    # Selección  de nonces
 │   │   ├── predict_nonce_server.py     # Servidor HTTP para distribuir nonces
@@ -90,13 +178,13 @@ zartrux-miner/1
 │   │   ├── predict_nonce_inference.py  # Inferencia de nonces con modelos
 │   │   ├── test_inference.py           # Pruebas de inferencia
 │
-│   ├── training/                       # Entrenamiento IA
+│   ├──src/ ia-modules/ training/                       # Entrenamiento IA
 │   │   ├── train_model.py              # Entrenamiento base
 │   │   ├── advanced_hash_classifier.py # Clasificador hash IA
 │   │   ├── AutoTrainer.py              # Entrenamiento automático
 │   │   └── RegressionModel.py          # Modelo de regresión
 │
-│   ├── analytics/                      # Análisis de datos mineros
+│   ├── src/ia-modules/analytics/                      # Análisis de datos mineros
 │   │   ├── TimeSeriesAnalyzer.py       # Media móvil, tendencias
 │   │   ├── FourierAnalyzer.py          # Frecuencias y espectros
 │   │   ├── ClusterAnalyzer.py          # Agrupación de nonces
@@ -105,7 +193,7 @@ zartrux-miner/1
 │   │   ├── lmdb_nonce_extractor.py     # Extracción LMDB de nonces
             zar.py                      # Análisis de datos
 │
-│   ├── evaluation/                     # Evaluación estadística avanzada
+│   ├──src/ ia-modules/evaluation/                     # Evaluación estadística avanzada
 │   │   ├── DistributionAnalyzer.py     # Curtosis y asimetría
 │   │   ├── SurvivalAnalyzer.py         # Análisis de supervivencia
 │   │   ├── nonce_stats.py              # Estadísticas básicas (CV, percentiles)
@@ -115,32 +203,32 @@ zartrux-miner/1
 │   │   ├── kl_divergence.py            # Divergencia de Kullback-Leibler
 │   │   └── lorenz_entropy.py           # Simulación caótica de Lorenz
 │
-│   ├── logs/
+│   ├──src/ ia-modules/logs/
 │   │   ├── nonces_exitosos.txt         # Nonces válidos en minería
 │   │   ├── nonces_hash.csv             # Hashes generados + puntuación
 │   │   └── inyectados.log              # Registro de nonces IA inyectados
 
-│   ├── data/
+│   ├── src/ia-modules/data/
 │   │   └── nonce_training_data.csv     # Dataset de entrenamiento
 
-│   ├── models/
+│   ├── src/ia-modules/ models/
 │   │   ├── ethical_nonce_model.joblib  # IA para selección óptima
 │   │   ├── hash_classifier_model.joblib# Clasificador IA
 │   │   └── cluster_model.joblib        # Clustering de nonces
 
-│   ├── utils/
+│   ├── src/ia-modules/utils/
 │   │   ├── FeatureEngineer.py          # Ingeniería de características temporales
 │   │   ├── nonce_loader.py             # Carga eficiente de logs y nonces
 │   │   ├── data_preprocessing.py       # Limpieza y preparación de datos
 │   │   └── config_manager.py           # Manejo de configuración para IA
 
-├── config/
+├── src/config/
 │   ├── miner_config.json               # Configuración principal del minero
 │   ├── ia_config.json                  # Configuración para IA
 │   ├── config_manager.json             # Configuración global
 │   └── logging_config.json.in          # Configuración de logs
 
-├── security/
+├── src/security/
 │   ├── AESNonceEncryptor.cpp/.h        # Encriptación AES de nonces
 │   ├── ConfigSigner.cpp/.h             # Firmado digital de configuración
 │   └── CMakeLists.txt
