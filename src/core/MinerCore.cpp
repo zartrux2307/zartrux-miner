@@ -1,17 +1,17 @@
 #include "MinerCore.h"
 #include "utils/Logger.h"
 #include "metrics/PrometheusExporter.h"
-#include "runtime/SystemMonitor.h"
+#include "core/SystemMonitor.h"
 #include "utils/StatusExporter.h"
-#include "network/WebsocketBackend.h"
+#include "zarbackend/WebsocketBackend.h"  // Suponiendo módulo WebSocket para zarbackend
 #include <fstream>
 #include <sstream>
 #include <csignal>
 #include <thread>
 #include <iomanip>
-
-#ifdef _WIN32
-#include <windows.h>
+#ifdef __linux__
+#include <pthread.h>
+#include <sched.h>
 #endif
 
 using namespace std::chrono;
@@ -27,7 +27,7 @@ MinerCore::MinerCore(std::shared_ptr<JobManager> jobManager, unsigned threadCoun
       m_acceptedShares(0) 
 {
     if (m_numThreads == 0) m_numThreads = 4;
-      Logger::info("MinerCore", "Configurado con {} hilos", m_numThreads.load());
+    Logger::info("[MinerCore] Configurado con {} hilos", m_numThreads);
 
     // Intentar restaurar estado si es posible
     loadCheckpoint();
@@ -59,24 +59,24 @@ bool MinerCore::initialize(const MiningConfig& config) {
 
     try {
         if (config.seed) {
-             Logger::info("MinerCore", "Inicializando RandomX con semilla: {}", config.seed.value());
+            Logger::info("[MinerCore] Inicializando RandomX con semilla: {}", config.seed.value());
             m_rxCache = randomx_alloc_cache(RANDOMX_FLAG_DEFAULT);
             if (!m_rxCache) {
-                  Logger::error("MinerCore", "Error al asignar cache de RandomX");
+                Logger::error("[MinerCore] Error al asignar cache de RandomX");
                 return false;
             }
             randomx_init_cache(m_rxCache, config.seed.value().data(), config.seed.value().size());
             for (unsigned i = 0; i < m_numThreads; ++i) {
                 randomx_vm* vm = randomx_create_vm(RANDOMX_FLAG_DEFAULT, m_rxCache, nullptr);
                 if (!vm) {
-                    Logger::error("MinerCore", "Error al crear VM para hilo {}", i);
+                    Logger::error("[MinerCore] Error al crear VM para hilo {}", i);
                     cleanupRandomX();
                     return false;
                 }
                 m_workerVMs.push_back(vm);
             }
         } else {
-             Logger::warn("MinerCore", "Advertencia: No se proporcionó semilla para RandomX");
+            Logger::warn("[MinerCore] Advertencia: No se proporcionó semilla para RandomX");
         }
         for (unsigned i = 0; i < m_numThreads; ++i) {
             WorkerThread::Config cfg{
@@ -89,12 +89,12 @@ bool MinerCore::initialize(const MiningConfig& config) {
             auto worker = std::make_unique<WorkerThread>(i, *m_jobManager, cfg);
             m_workers.emplace_back(std::move(worker));
         }
-                Logger::info("MinerCore", "Inicialización completa con {} hilos. Modo: {}", m_numThreads.load(), m_config.mode);
+        Logger::info("[MinerCore] Inicialización completa con {} hilos. Modo: {}", m_numThreads, m_config.mode);
         broadcastEvent("init", "Miner inicializado");
         return true;
     }
     catch (const std::exception& ex) {
-          Logger::error("MinerCore", "Excepción durante la inicialización: {}", ex.what());
+        Logger::error("[MinerCore] Excepción durante la inicialización: {}", ex.what());
         cleanupRandomX();
         return false;
     }
@@ -103,7 +103,7 @@ bool MinerCore::initialize(const MiningConfig& config) {
 void MinerCore::startMining() {
     try {
         if (m_mining.exchange(true)) {
-             Logger::warn("MinerCore", "La minería ya está activa.");
+            Logger::warn("[MinerCore] La minería ya está activa.");
             return;
         }
         m_miningStartTime = steady_clock::now();
@@ -113,10 +113,10 @@ void MinerCore::startMining() {
             setAffinity(i);
             m_workers[i]->start();
         }
-        Logger::info("MinerCore", "Minería iniciada en modo: {}", m_config.mode);
+        Logger::info("[MinerCore] Minería iniciada en modo: {}", m_config.mode);
         broadcastEvent("start", "Minería iniciada");
     } catch (const std::exception& ex) {
-           Logger::error("MinerCore", "Error en startMining: {}", ex.what());
+        Logger::error("[MinerCore] Error en startMining: {}", ex.what());
         broadcastEvent("error", ex.what());
     }
 }
@@ -124,16 +124,16 @@ void MinerCore::startMining() {
 void MinerCore::stopMining() {
     try {
         if (!m_mining.exchange(false)) {
-              Logger::warn("MinerCore", "La minería ya estaba detenida.");
+            Logger::warn("[MinerCore] La minería ya estaba detenida.");
             return;
         }
         for (auto& worker : m_workers) worker->stop();
         for (auto& worker : m_workers)
             if (worker->joinable()) worker->join();
-             Logger::info("MinerCore", "Minería detenida. Tiempo activa: {} segundos", getMiningTime());
+        Logger::info("[MinerCore] Minería detenida. Tiempo activa: {} segundos", getMiningTime());
         broadcastEvent("stop", "Minería detenida");
     } catch (const std::exception& ex) {
-        Logger::error("MinerCore", "Error en stopMining: {}", ex.what());
+        Logger::error("[MinerCore] Error en stopMining: {}", ex.what());
         broadcastEvent("error", ex.what());
     }
     saveCheckpoint();
@@ -156,7 +156,7 @@ int MinerCore::getAcceptedShares() const { return m_acceptedShares.load(); }
 float MinerCore::getCurrentDifficulty() const { return m_jobManager->getCurrentDifficulty(); }
 std::string MinerCore::getCurrentBlock() const { return std::to_string(m_jobManager->getCurrentBlockHeight()); }
 std::string MinerCore::getBlockStatus() const { return m_jobManager->isBlockValidating() ? "Validando" : "Minando"; }
-float MinerCore::getTemperature() const { return SystemMonitor::getSystemData().cpu_temp; }
+float MinerCore::getTemperature() const { return SystemMonitor::instance().getCPUTemperature(); }
 std::string MinerCore::getTempStatus() const {
     float temp = getTemperature();
     if (temp < 50) return "Normal";
@@ -172,16 +172,16 @@ void MinerCore::cleanupWorkers() {
         }
     }
     m_workers.clear();
-      Logger::info("MinerCore", "Hilos limpiados correctamente.");
+    Logger::info("[MinerCore] Hilos limpiados correctamente.");
 }
 
 void MinerCore::setNumThreads(unsigned count) {
     if (m_mining) {
-        Logger::warn("MinerCore", "No se puede modificar la cantidad de hilos mientras se mina.");
+        Logger::warn("[MinerCore] No se puede modificar la cantidad de hilos mientras se mina.");
         return;
     }
     m_numThreads = count > 0 ? count : std::thread::hardware_concurrency();
-  Logger::info("MinerCore", "Número de hilos actualizado a {}", m_numThreads.load());
+    Logger::info("[MinerCore] Número de hilos actualizado a {}", m_numThreads);
 }
 
 std::vector<MinerCore::WorkerStats> MinerCore::getWorkerStats() const {
@@ -209,23 +209,22 @@ void MinerCore::updateMetrics() {
         iaNoncesUsed += s.iaNoncesUsed;
         totalHashRate += s.hashRate;
     }
-   PrometheusExporter::getInstance().recordMetrics({
+    PrometheusExporter::instance().record({
         {"total_hashes", totalHashes},
         {"accepted_hashes", acceptedHashes},
         {"ia_nonces_used", iaNoncesUsed},
         {"total_hash_rate", static_cast<uint64_t>(totalHashRate)},
         {"active_threads", static_cast<uint64_t>(getActiveThreads())}
     });
-    MinerStatus status{};
-    status.hashrate = totalHashRate;
-    status.shares = acceptedHashes;
-    status.temperature = getTemperature();
-    status.mining_seconds = getMiningTime();
-    status.active_threads = getActiveThreads();
-    status.total_threads = m_numThreads;
-    StatusExporter::exportStatus(status);
+    StatusExporter::instance().exportJSON({
+        {"hashrate", totalHashRate},
+        {"threads", m_numThreads},
+        {"shares", acceptedHashes},
+        {"temperature", getTemperature()},
+        {"uptime", getMiningTime()}
+    });
     broadcastEvent("metrics", std::to_string(totalHashRate));
-     Logger::debug("MinerCore", "Métricas actualizadas: Total hashes={}, Aceptados={}, IA={}",
+    Logger::debug("[MinerCore] Métricas actualizadas: Total hashes={}, Aceptados={}, IA={}",
                  totalHashes, acceptedHashes, iaNoncesUsed);
 }
 
@@ -244,7 +243,7 @@ void MinerCore::restartWorker(unsigned id) {
     m_workers[id] = std::make_unique<WorkerThread>(id, *m_jobManager, cfg);
     setAffinity(id);
     m_workers[id]->start();
-     Logger::info("MinerCore", "Hilo {} reiniciado", id);
+    Logger::info("[MinerCore] Hilo {} reiniciado", id);
 }
 
 void MinerCore::setAffinity(unsigned threadId) {
@@ -268,7 +267,7 @@ void MinerCore::saveCheckpoint() const {
             m_miningStartTime.load().time_since_epoch()).count() << "\"\n";
         out << "}\n";
     } catch (...) {
-           Logger::warn("MinerCore", "Error guardando checkpoint (ignorado).");
+        Logger::warn("[MinerCore] Error guardando checkpoint (ignorado).");
     }
 }
 
@@ -280,10 +279,10 @@ bool MinerCore::loadCheckpoint() {
         while (std::getline(in, line)) {
             // Implementar carga real según formato (puede usarse nlohmann::json o similar)
         }
-         Logger::info("MinerCore", "Checkpoint restaurado correctamente.");
+        Logger::info("[MinerCore] Checkpoint restaurado correctamente.");
         return true;
     } catch (...) {
-         Logger::warn("MinerCore", "Error restaurando checkpoint (ignorado).");
+        Logger::warn("[MinerCore] Error restaurando checkpoint (ignorado).");
         return false;
     }
 }

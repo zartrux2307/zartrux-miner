@@ -6,21 +6,14 @@
 #include <cmath>
 #include <fmt/core.h>
 #include <csignal>
-#ifdef _WIN32
-#include <windows.h>
-#undef ERROR
-#undef INFO
-#endif
+#include <sched.h>
 
 using json = nlohmann::json;
+
+// ---- Singleton ----
 JobManager& JobManager::getInstance() {
     static JobManager instance;
     return instance;
-}
-
-// compatibility alias
-JobManager& JobManager::instance() {
-    return getInstance();
 }
 
 // ---- Constructor/Destructor: arranque fetch de IA y recuperación checkpoint ----
@@ -35,7 +28,7 @@ JobManager::JobManager()
                 fetchIANoncesBackground();
                 saveCheckpoint(); // checkpoint periódico
             } catch (const std::exception& ex) {
-                Logger::error("JobManager", "Excepción hilo IA fetch: {}", ex.what());
+                Logger::error("Excepción hilo IA fetch: {}", ex.what());
             }
             std::this_thread::sleep_for(IA_FETCH_INTERVAL);
         }
@@ -92,7 +85,7 @@ void JobManager::loadCheckpoint() {
         m_iaQueue.push_back(n);
     }
     in.close();
-     Logger::info("JobManager", "Recuperado checkpoint: {} CPU, {} IA", cpuq, iaq);
+    Logger::info("Recuperado checkpoint: {} CPU, {} IA", cpuq, iaq);
 }
 
 // ---- Contribución IA (protección atomic) ----
@@ -117,7 +110,7 @@ std::string JobManager::getIAEndpoint() const {
 void JobManager::injectIANonces(std::vector<AnnotatedNonce>&& nonces) {
     std::lock_guard<std::mutex> lock(m_mutex);
     if (m_iaQueue.size() > MAX_IA_QUEUE) {
-         Logger::warn("JobManager", "Flood control: IA queue saturada, se descarta lote.");
+        Logger::warn("Flood control: IA queue saturada, se descarta lote.");
         return;
     }
     std::sort(nonces.begin(), nonces.end(),
@@ -135,7 +128,7 @@ void JobManager::setWorkerAffinity(size_t workerId, int cpuCore) {
     CPU_SET(cpuCore, &cpuset);
     int rc = pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
     if (rc != 0)
-          Logger::warn("JobManager", "No se pudo asignar afinidad al worker {} (núcleo {})", workerId, cpuCore);
+        Logger::warn("No se pudo asignar afinidad al worker {} (núcleo {})", workerId, cpuCore);
 #endif
 }
 
@@ -234,11 +227,11 @@ std::vector<AnnotatedNonce> JobManager::fetchNoncesFromIA() {
                         .timestamp = Profiler::getTimestamp()
                     });
                 }
-                Logger::info("JobManager", "Obtenidos {} nonces desde IA", nonces.size());
+                Logger::info("Obtenidos {} nonces desde IA", nonces.size());
                 return nonces;
             }
         } catch (...) {
-            Logger::error("JobManager", "Error al obtener nonces desde IA");
+            Logger::error("Error al obtener nonces desde IA");
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(300));
     }
@@ -288,32 +281,19 @@ void JobManager::submitValidNonce(uint64_t nonce, const std::string& hash) {
         std::ofstream out("logs/nonces_exitosos.txt", std::ios::app);
         if (out) {
             out << nonce << "," << hash << "\n";
-           Logger::info("JobManager", "Nonce válido registrado: {}", nonce);
+            Logger::info("Nonce válido registrado: {}", nonce);
         }
     } catch (...) {
-         Logger::error("JobManager", "Error al registrar nonce exitoso");
+        Logger::error("Error al registrar nonce exitoso");
     }
 }
 
 // ---- Métricas de cola y contadores ----
+size_t JobManager::getQueueSize() const {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_cpuQueue.size() + m_iaQueue.size();
+}
+
 size_t JobManager::getProcessedCount() const {
     return m_processedCount.load();
-}
-
-// ---- Información de trabajo actual ----
-MiningJob JobManager::getCurrentJob() const {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    return m_currentJob;
-}
-
-float JobManager::getCurrentDifficulty() const {
-    return m_currentDifficulty.load();
-}
-
-uint64_t JobManager::getCurrentBlockHeight() const {
-    return m_currentBlockHeight.load();
-}
-
-bool JobManager::isBlockValidating() const {
-    return m_blockValidating.load();
 }

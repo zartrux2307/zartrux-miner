@@ -26,16 +26,9 @@ struct AnnotatedNonce {
     uint64_t timestamp;
 };
 
-struct MiningJob {
-    std::vector<uint8_t> blob;
-    NonceValidator::hash_t target{};
-    bool valid{false};
-};
-
 class JobManager {
 public:
     static JobManager& getInstance();
-    static JobManager& instance() { return getInstance(); }
 
     // Gestión de contribución IA
     void setAIContribution(float ratio);
@@ -45,12 +38,8 @@ public:
     void setIAEndpoint(const std::string& endpoint);
     std::string getIAEndpoint() const;
 
-      // Obtención de trabajo
+    // Obtención de trabajo
     std::vector<AnnotatedNonce> getWorkBatch(size_t workerId, size_t maxNonces);
-    MiningJob getCurrentJob() const;
-    float getCurrentDifficulty() const;
-    uint64_t getCurrentBlockHeight() const;
-    bool isBlockValidating() const;
 
     // Inyección de nonces IA
     void injectIANonces(std::vector<AnnotatedNonce>&& nonces);
@@ -103,11 +92,6 @@ private:
     std::deque<AnnotatedNonce> m_cpuQueue;
     std::deque<AnnotatedNonce> m_iaQueue;
 
-    // Trabajo actual
-    MiningJob m_currentJob;
-    std::atomic<float> m_currentDifficulty{0.0f};
-    std::atomic<uint64_t> m_currentBlockHeight{0};
-    std::atomic<bool> m_blockValidating{false};
     // Contadores
     std::atomic<size_t> m_validNonces{0};
     std::atomic<size_t> m_iaContributed{0};

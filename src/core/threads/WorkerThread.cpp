@@ -1,212 +1,163 @@
-#include "WorkerThread.h"
-#include "core/JobManager.h"
-#include "core/NonceValidator.h"
-#include "core/MiningModeManager.h"
-#include "core/ia/IAReceiver.h"
+#include "core/threads/WorkerThread.h"
 #include "utils/Logger.h"
-
+#include "core/ia/IAReceiver.h"
 #include <randomx.h>
-#include <random>
+#include <fmt/format.h>
+#include <sstream>
+#include <iomanip>
 #include <chrono>
-#include <thread>
-#include <vector>
-#include <exception>
-#if defined(_WIN32)
-    #include <windows.h>
-    #undef ERROR
-    #undef INFO
-#endif
 
-// Solo para minería real de Monero/RandomX. No válido para ningún otro algoritmo ni para simulaciones.
-
-class LocalNonceGenerator {
-public:
-    LocalNonceGenerator() :
-        m_engine(std::random_device{}()),
-        m_distribution(0, std::numeric_limits<uint64_t>::max()) {}
-
-    uint64_t next() {
-        return m_distribution(m_engine);
-    }
-private:
-    std::mt19937_64 m_engine;
-    std::uniform_int_distribution<uint64_t> m_distribution;
-};
+using namespace std::chrono;
 
 WorkerThread::WorkerThread(unsigned id, JobManager& jobManager, const Config& config)
-    : m_id(id), m_jobManager(jobManager), m_config(config)
+    : m_id(id)
+    , m_jobManager(jobManager)
+    , m_config(config)
+    , m_running(false)
 {
-     Logger::debug("WorkerThread", "[{}] Inicializado con VM: {}", id, (void*)config.vm);
+    Logger::info("WorkerThread", "Hilo {} creado", m_id);
 }
 
 WorkerThread::~WorkerThread() {
     stop();
-}
-
-void WorkerThread::start() {
-    if (!m_running.exchange(true)) {
-        m_thread = std::thread(&WorkerThread::run, this);
-    }
-}
-
-void WorkerThread::stop() {
-    m_running = false;
     if (m_thread.joinable()) {
         m_thread.join();
     }
 }
 
-bool WorkerThread::isRunning() const {
-    return m_running.load();
+void WorkerThread::start() {
+    if (m_running.exchange(true)) {
+        return; // Ya está corriendo
+    }
+    m_thread = std::thread(&WorkerThread::run, this);
+    if (m_config.cpuAffinity >= 0) {
+        setCPUAffinity(m_config.cpuAffinity);
+    }
+    Logger::debug("WorkerThread", "Hilo {} iniciado", m_id);
 }
 
-WorkerThread::Metrics WorkerThread::getMetrics() const {
-    return m_metrics;
+void WorkerThread::stop() {
+    m_running.store(false);
 }
 
 void WorkerThread::restart() {
-   Logger::warn("WorkerThread", "[{}] Reiniciando tras excepción...", m_id);
     stop();
+    if (m_thread.joinable()) {
+        m_thread.join();
+    }
+    Logger::debug("WorkerThread", "Reiniciando hilo {}", m_id);
     start();
 }
 
 bool WorkerThread::setCPUAffinity(int core) {
-#if defined(_WIN32)
-    if (core < 0) return false;
-    DWORD_PTR mask = (1ULL << core);
-    HANDLE threadHandle = (HANDLE)m_thread.native_handle();
-    DWORD_PTR result = SetThreadAffinityMask(threadHandle, mask);
-    if (result == 0) {
-        Logger::warn("WorkerThread", "[{}] No se pudo fijar afinidad CPU (Windows).", m_id);
+#ifdef _WIN32
+    HANDLE thread = m_thread.native_handle();
+    DWORD_PTR mask = (static_cast<DWORD_PTR>(1) << core);
+    if (!SetThreadAffinityMask(thread, mask)) {
+        Logger::error("WorkerThread", "Error al establecer afinidad de CPU para hilo {}", m_id);
         return false;
-    } else {
-        Logger::info("WorkerThread", "[{}] Afinidad fijada al core {} (Windows)", m_id, core);
-        return true;
     }
-#else
-    return false; // Afinidad solo soportada en Windows por ahora
+#elif defined(__linux__)
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(core, &cpuset);
+    int rc = pthread_setaffinity_np(m_thread.native_handle(), sizeof(cpu_set_t), &cpuset);
+    if (rc != 0) {
+        Logger::error("WorkerThread", "Error al establecer afinidad de CPU para hilo {}", m_id);
+        return false;
+    }
 #endif
+    return true;
 }
 
 void WorkerThread::run() {
-    LocalNonceGenerator localGenerator;
-    auto& modeManager = MiningModeManager::getInstance();
-    auto& iaReceiver = IAReceiver::getInstance();
-
-    // Fijar afinidad de CPU si procede
-    if (!setCPUAffinity(m_config.cpuAffinity)) {
-         Logger::debug("WorkerThread", "[{}] CPU affinity could not be set", m_id);
-    }
-   Logger::info("WorkerThread", "[{}] Iniciado. Modo actual: {}",
-        m_id, modeToString(modeManager.getCurrentMode()))
-
-    auto lastPerfUpdate = std::chrono::steady_clock::now();
-    uint64_t lastHashesCount = 0;
-
     try {
+        auto& iaReceiver = IAReceiver::getInstance();
+        uint64_t hashCount = 0;
+        auto lastHashTime = steady_clock::now();
+        std::vector<uint8_t> data;
+        NonceValidator validator;
+
         while (m_running) {
-            // 1. Obtener trabajo actual
+            // Obtener trabajo actual
             auto job = m_jobManager.getCurrentJob();
-            if (!job.valid) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            if (!job) {
+                std::this_thread::sleep_for(milliseconds(100));
                 continue;
             }
 
-            // 2. Selección de modo y obtención de nonce
-            uint64_t nonce = 0;
-            bool isFromIA = false;
-            const auto mode = modeManager.getCurrentMode();
+            // Preparar datos para hash
+            data = job->getData();
+            uint64_t nonce;
 
-            if (mode == MiningMode::IA) {
-                nonce = iaReceiver.fetchNonce();
-                isFromIA = true;
-                m_metrics.iaNoncesUsed++;
-            } else if (mode == MiningMode::HYBRID) {
-                if (m_hybridToggle.exchange(!m_hybridToggle)) {
-                    nonce = iaReceiver.fetchNonce();
-                    isFromIA = true;
+            // Modo híbrido: alternar entre IA y CPU
+            if (m_hybridToggle.load()) {
+                // Intentar obtener nonce de IA
+                auto iaNonce = iaReceiver.requestNonce();
+                if (iaNonce) {
+                    nonce = *iaNonce;
                     m_metrics.iaNoncesUsed++;
                 } else {
-                    nonce = localGenerator.next();
+                    // Si no hay nonce de IA, generar uno
+                    nonce = m_jobManager.generateNonce();
                 }
+                m_hybridToggle.store(false);
             } else {
-                nonce = localGenerator.next();
+                nonce = m_jobManager.generateNonce();
+                m_hybridToggle.store(true);
             }
 
-            // 3. Insertar nonce en el blob
-            std::vector<uint8_t> blob = job.blob;
-            NonceValidator::insertNonce(blob, nonce, m_config.noncePosition, m_config.nonceSize, m_config.nonceEndianness);
+            // Insertar nonce en datos
+            validator.insertNonce(data, nonce, m_config.noncePosition, 
+                               m_config.nonceSize, 
+                               m_config.nonceEndianness ? NonceValidator::Endianness::BIG 
+                                                      : NonceValidator::Endianness::LITTLE);
 
-            // 4. Calcular hash con RandomX
+            // Calcular hash
             NonceValidator::hash_t hash;
-            randomx_calculate_hash(m_config.vm, blob.data(), blob.size(), hash.data());
+            randomx_calculate_hash(static_cast<randomx_vm*>(m_config.vm),
+                                 data.data(), data.size(), hash.data());
 
-            // 5. Validar hash vs target
-            if (NonceValidator::isValidFast(hash, job.target)) {
-                const auto hashStr = toHexString(hash);
-                m_jobManager.submitValidNonce(std::to_string(nonce), hashStr);
-
-                if (isFromIA) {
-                    iaReceiver.reportSuccess(nonce, hashStr);
-                }
+            // Verificar hash
+            if (validator.isValidFast(hash, job->getDifficulty())) {
+                std::string hashHex = toHexString(hash);
+                m_jobManager.submitValidNonce(nonce, hashHex);
                 m_metrics.acceptedHashes++;
             }
+
+            // Actualizar métricas
+            hashCount++;
             m_metrics.totalHashes++;
 
-            // 6. Throttling (por PowerSafe/AdaptiveScheduler o config)
-            if (m_config.throttle < 1.0) {
-                std::this_thread::sleep_for(std::chrono::microseconds(static_cast<int>(1000 * (1.0 - m_config.throttle))));
+            // Calcular tasa de hash cada segundo
+            auto now = steady_clock::now();
+            auto elapsed = duration_cast<seconds>(now - lastHashTime).count();
+            if (elapsed >= 1) {
+                double hashRate = static_cast<double>(hashCount) / elapsed;
+                m_metrics.hashRate.store(hashRate);
+                hashCount = 0;
+                lastHashTime = now;
+                Logger::debug("WorkerThread", "Hilo {} - Hash rate: {:.2f} H/s", m_id, hashRate);
             }
 
-            // 7. Actualizar métricas de rendimiento cada segundo
-            auto now = std::chrono::steady_clock::now();
-            auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastPerfUpdate).count();
-
-            if (elapsed > 1000) {
-                const uint64_t hashesDelta = m_metrics.totalHashes - lastHashesCount;
-                m_metrics.hashRate = (hashesDelta * 1000.0) / elapsed;
-
-                lastPerfUpdate = now;
-                lastHashesCount = m_metrics.totalHashes;
-                   Logger::debug("WorkerThread", "[{}] Hash rate: {:.2f} H/s", m_id, m_metrics.hashRate.load());
+            // Throttling si está configurado
+            if (m_config.throttle < 1.0) {
+                std::this_thread::sleep_for(microseconds(
+                    static_cast<int64_t>((1.0 - m_config.throttle) * 1000)));
             }
         }
-    } catch (const std::exception& ex) {
-       Logger::error("WorkerThread", "[{}] Excepción crítica: {}", m_id, ex.what());
-        restart(); // Reinicia el hilo tras excepción
-    } catch (...) {
-       Logger::error("WorkerThread", "[{}] Excepción crítica desconocida", m_id);
-        restart();
     }
-
-      Logger::info("WorkerThread", "[{}] Detenido", m_id);
+    catch (const std::exception& ex) {
+        m_metrics.hasCriticalError = true;
+        Logger::error("WorkerThread", "Error en hilo {}: {}", m_id, ex.what());
+    }
 }
 
 std::string WorkerThread::toHexString(const NonceValidator::hash_t& hash) const {
-    static constexpr char hexDigits[] = "0123456789abcdef";
-    std::string output;
-    output.reserve(64);
-    for (uint8_t byte : hash) {
-        output.push_back(hexDigits[byte >> 4]);
-        output.push_back(hexDigits[byte & 0x0F]);
+    std::stringstream ss;
+    ss << std::hex << std::setfill('0');
+    for (const auto& byte : hash) {
+        ss << std::setw(2) << static_cast<int>(byte);
     }
-    return output;
-}
-
-bool WorkerThread::joinable() const {
-    return m_thread.joinable();
-}
-
-void WorkerThread::join() {
-    if (m_thread.joinable()) {
-        m_thread.join();
-    }
-}
-
-uint64_t WorkerThread::getHashesProcessed() const {
-    return m_metrics.totalHashes.load();
-}
-
-uint64_t WorkerThread::getAcceptedHashes() const {
-    return m_metrics.acceptedHashes.load();
+    return ss.str();
 }

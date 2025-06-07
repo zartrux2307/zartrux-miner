@@ -1,157 +1,161 @@
-#include "IAReceiver.h"
-#include <iostream>
-#include <stdexcept>
-#include <cstring>
-#include <zmq.h>
+#include "core/ia/IAReceiver.h"
+#include "utils/Logger.h"
+#include <cpr/cpr.h>
+#include <nlohmann/json.hpp>
+#include <fmt/format.h>
+#include <chrono>
 
 using json = nlohmann::json;
+using namespace std::chrono;
 
-// ---- Constructor/Destructor
-IAReceiver::IAReceiver(const Config& config)
-    : m_config(config)
-{
-    if (m_config.protocol == IAProtocol::ZMQ) {
-        m_zmqContext = zmq_ctx_new();
-        if (!m_zmqContext) throw std::runtime_error("ZMQ context creation failed");
-
-        m_zmqSocket = zmq_socket(m_zmqContext, ZMQ_REP);
-        if (!m_zmqSocket) {
-            zmq_ctx_destroy(m_zmqContext);
-            throw std::runtime_error("ZMQ socket creation failed");
-        }
-        std::string endpoint = "tcp://" + config.ip + ":" + std::to_string(config.port);
-        if (zmq_bind(m_zmqSocket, endpoint.c_str()) != 0) {
-            zmq_close(m_zmqSocket); zmq_ctx_destroy(m_zmqContext);
-            throw std::runtime_error("ZMQ bind failed at " + endpoint);
-        }
-        zmq_setsockopt(m_zmqSocket, ZMQ_RCVTIMEO, &config.recvTimeoutMs, sizeof(config.recvTimeoutMs));
-    } else {
-        m_httpSession.SetUrl(cpr::Url{m_config.serverUrl});
-        m_httpSession.SetTimeout(cpr::Timeout{m_config.requestTimeoutMs});
-    }
+namespace {
+    constexpr int MAX_RETRIES = 3;
+    constexpr auto RETRY_DELAY = milliseconds(1000);
+    constexpr auto REQUEST_TIMEOUT = milliseconds(5000);
+    
+    // Endpoints
+    const std::string BASE_URL = "http://localhost:8080";
+    const std::string NONCE_ENDPOINT = "/api/v1/nonce";
+    const std::string VERIFY_ENDPOINT = "/api/v1/verify";
 }
 
-IAReceiver::~IAReceiver() {
-    stop();
-    cleanup();
+IAReceiver& IAReceiver::getInstance() {
+    static IAReceiver instance;
+    return instance;
 }
 
-// --- ZMQ PUSH MODE: threading/callback
-void IAReceiver::start() {
-    if (m_config.protocol != IAProtocol::ZMQ) return;
-    if (m_running.exchange(true)) return;
-    m_thread = std::thread(&IAReceiver::zmqListenLoop, this);
+IAReceiver::IAReceiver() 
+    : m_session(std::make_unique<cpr::Session>())
+    , m_enabled(false)
+    , m_lastRequest(steady_clock::now())
+    , m_requestCount(0)
+    , m_successCount(0) {
+    
+    // Configurar sesión HTTP
+    m_session->SetUrl(cpr::Url{BASE_URL});
+    m_session->SetTimeout(REQUEST_TIMEOUT);
+    m_session->SetVerifySsl(false); // Para desarrollo local
 }
 
-void IAReceiver::stop() {
-    if (!m_running.exchange(false)) return;
-    if (m_thread.joinable()) m_thread.join();
-}
-
-void IAReceiver::cleanup() {
-    if (m_zmqSocket) zmq_close(m_zmqSocket);
-    if (m_zmqContext) zmq_ctx_destroy(m_zmqContext);
-    m_zmqSocket = nullptr; m_zmqContext = nullptr;
-}
-
-void IAReceiver::setNonceCallback(NonceCallback cb) {
+void IAReceiver::configure(const Config& config) {
     std::lock_guard<std::mutex> lock(m_mutex);
-    m_callback = std::move(cb);
+    
+    m_enabled = config.enabled;
+    m_session->SetUrl(cpr::Url{config.serverUrl});
+    m_session->SetTimeout(cpr::Timeout{config.timeoutMs});
+    
+    if (!config.apiKey.empty()) {
+        m_session->SetHeader(cpr::Header{{"X-API-Key", config.apiKey}});
+    }
+    
+    Logger::info("IAReceiver", "Configurado: enabled={}, url={}", 
+                m_enabled, config.serverUrl);
 }
 
-// ---- HTTP Polling (síncrono: fetch/report)
-std::vector<uint64_t> IAReceiver::fetchNonces(int count) {
-    std::vector<uint64_t> nonces;
-    m_stats.fetchAttempts++;
+std::optional<uint64_t> IAReceiver::requestNonce() {
+    if (!m_enabled) return std::nullopt;
+
+    std::lock_guard<std::mutex> lock(m_mutex);
+    
     try {
-        json req = {{"count", count}};
-        if (!m_config.authToken.empty()) req["auth"] = m_config.authToken;
-           m_httpSession.SetBody(cpr::Body{req.dump()});
-        m_httpSession.SetHeader({{"Content-Type", "application/json"}});
-        auto resp = m_httpSession.Post();
-        if (resp.status_code == 200) {
-            auto j = json::parse(resp.text);
-            if (j.contains("nonces") && j["nonces"].is_array()) {
-                nonces = j["nonces"].get<std::vector<uint64_t>>();
-                m_stats.fetchSuccesses++;
-                m_stats.zmqNoncesRecv += nonces.size();
-                if (m_config.verbose) logInfo("Fetched " + std::to_string(nonces.size()) + " nonces (HTTP)");
+        // Verificar rate limiting
+        auto now = steady_clock::now();
+        if (now - m_lastRequest < milliseconds(100)) {
+            return std::nullopt;
+        }
+        m_lastRequest = now;
+        m_requestCount++;
+
+        // Preparar payload
+        json payload = {
+            {"timestamp", duration_cast<milliseconds>(
+                system_clock::now().time_since_epoch()).count()},
+            {"request_id", m_requestCount}
+        };
+
+        // Realizar solicitud POST
+        auto response = m_session->Post(
+            cpr::Url{m_session->GetUrl() + NONCE_ENDPOINT},
+            cpr::Body{payload.dump()},
+            cpr::Header{{"Content-Type", "application/json"}}
+        );
+
+        // Verificar respuesta
+        if (response.status_code == 200) {
+            auto responseJson = json::parse(response.text);
+            if (responseJson.contains("nonce")) {
+                uint64_t nonce = responseJson["nonce"].get<uint64_t>();
+                m_successCount++;
+                Logger::debug("IAReceiver", "Nonce recibido: {}", nonce);
+                return nonce;
             }
         }
-    } catch (...) { logError("HTTP fetchNonces failed"); }
-    return nonces;
-}
-
-void IAReceiver::reportResult(uint64_t nonce, bool accepted, const std::string& hash) {
-    m_stats.reportAttempts++;
-    try {
-        json req = {{"nonce", nonce}, {"accepted", accepted}};
-        if (!hash.empty()) req["hash"] = hash;
-        if (!m_config.authToken.empty()) req["auth"] = m_config.authToken;
-         m_httpSession.SetBody(cpr::Body{req.dump()});
-        m_httpSession.SetHeader({{"Content-Type", "application/json"}});
-        auto resp = m_httpSession.Post();
-        if (resp.status_code == 200) {
-            m_stats.reportSuccesses++;
-            if (m_config.verbose) logInfo("Reported nonce " + std::to_string(nonce) + " result");
-        }
-    } catch (...) { logError("HTTP reportResult failed"); }
-}
-
-IAReceiver::Stats IAReceiver::getStats() const { return m_stats; }
-
-// ---- ZMQ listener loop (Push)
-void IAReceiver::zmqListenLoop() {
-    while (m_running) {
-        char buffer[4096] = {0};
-        int received = zmq_recv(m_zmqSocket, buffer, sizeof(buffer) - 1, 0);
-        if (received > 0) {
-            std::string msg(buffer, received);
-            handleJsonMessage(msg);
-            zmq_send(m_zmqSocket, "ok", 2, 0);
-            m_stats.zmqMessages++;
-        } else if (received == -1) {
-            m_stats.zmqErrors++;
+        else {
+            Logger::warn("IAReceiver", "Error en solicitud: {} - {}", 
+                        response.status_code, response.text);
         }
     }
+    catch (const std::exception& e) {
+        Logger::error("IAReceiver", "Error en requestNonce: {}", e.what());
+    }
+
+    return std::nullopt;
 }
 
-void IAReceiver::handleJsonMessage(const std::string& msg) {
+bool IAReceiver::verifyNonce(uint64_t nonce, const std::string& hash) {
+    if (!m_enabled) return false;
+
+    std::lock_guard<std::mutex> lock(m_mutex);
+    
     try {
-        auto j = json::parse(msg);
-        if (!m_config.authToken.empty()) {
-            std::string auth = j.value("auth", "");
-            if (auth != m_config.authToken) {
-                m_stats.zmqAuthFails++;
-                logError("Auth token mismatch");
-                return;
+        // Preparar payload
+        json payload = {
+            {"nonce", nonce},
+            {"hash", hash},
+            {"timestamp", duration_cast<milliseconds>(
+                system_clock::now().time_since_epoch()).count()}
+        };
+
+        // Realizar solicitud POST
+        auto response = m_session->Post(
+            cpr::Url{m_session->GetUrl() + VERIFY_ENDPOINT},
+            cpr::Body{payload.dump()},
+            cpr::Header{{"Content-Type", "application/json"}}
+        );
+
+        // Verificar respuesta
+        if (response.status_code == 200) {
+            auto responseJson = json::parse(response.text);
+            if (responseJson.contains("valid")) {
+                return responseJson["valid"].get<bool>();
             }
         }
-        if (!j.contains("nonces") || !j["nonces"].is_array()) {
-            logError("Invalid nonce format");
-            m_stats.zmqParseErr++;
-            return;
-        }
-        std::vector<uint64_t> nonces = j["nonces"].get<std::vector<uint64_t>>();
-        if (m_callback) m_callback(nonces);
-        m_stats.zmqNoncesRecv += nonces.size();
-        if (m_config.verbose) logInfo("Received " + std::to_string(nonces.size()) + " nonces (ZMQ)");
-    } catch (...) {
-        m_stats.zmqParseErr++;
-        logError("JSON parse error");
+        
+        Logger::warn("IAReceiver", "Error en verificación: {} - {}", 
+                    response.status_code, response.text);
     }
+    catch (const std::exception& e) {
+        Logger::error("IAReceiver", "Error en verifyNonce: {}", e.what());
+    }
+
+    return false;
 }
 
-// ---- Logging
-void IAReceiver::logError(const std::string& msg) const {
-    if (m_config.verbose) std::cerr << "[IAReceiver][ERROR] " << msg << std::endl;
-}
-void IAReceiver::logInfo(const std::string& msg) const {
-    if (m_config.verbose) std::cout << "[IAReceiver][INFO] " << msg << std::endl;
+std::pair<uint64_t, uint64_t> IAReceiver::getStats() const {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return {m_requestCount, m_successCount};
 }
 
-// ---- Singleton
-IAReceiver& IAReceiver::instance(const Config& config) {
-    static IAReceiver inst(config);
-    return inst;
+void IAReceiver::reset() {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_requestCount = 0;
+    m_successCount = 0;
+    m_lastRequest = steady_clock::now();
 }
+
+bool IAReceiver::isEnabled() const {
+    return m_enabled;
+}
+
+// Constructor privado y destructor
+IAReceiver::~IAReceiver() = default;
