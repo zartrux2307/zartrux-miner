@@ -12,11 +12,14 @@ public:
     explicit NonceLoggerAdapter(const std::string& context = "NonceLogger");
 
     void logPythonEvent(const std::string& level, const std::string& message, const pybind11::dict& extra);
-    void logExportProgress(size_t processed, size_t total, const std::string& additionalInfo);  // <--- SIN valor por defecto aquí
+    void logExportProgress(size_t processed, size_t total, const std::string& additionalInfo);
     void logFileOperation(const std::string& operation, const std::string& filename, bool success);
 
     void setNonceLoggingPrecision(int precision);
     int getNonceLoggingPrecision() const;
+
+    // --- CORRECCIÓN: Se restauró el método estático que faltaba ---
+    static void log_nonce(const std::string& nonce_hex, bool is_valid, size_t timestamp);
 
     static std::mutex& globalMutex();
 
