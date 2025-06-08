@@ -1,6 +1,6 @@
 #ifndef ZARTRUX_MINING_MODE_MANAGER_H
 #define ZARTRUX_MINING_MODE_MANAGER_H
-
+#include "JobManager.h"
 #include <mutex>
 #include <string>
 #include <stdexcept>

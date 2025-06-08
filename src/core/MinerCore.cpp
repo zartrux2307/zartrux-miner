@@ -4,6 +4,7 @@
 #include "core/SystemMonitor.h"
 #include "utils/StatusExporter.h"
 #include "zarbackend/WebsocketBackend.h"  // Suponiendo módulo WebSocket para zarbackend
+#include "ia/IAReceiver.h"
 #include <fstream>
 #include <sstream>
 #include <csignal>

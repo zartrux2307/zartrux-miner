@@ -1,4 +1,5 @@
 #include "JobManager.h"
+#include "MiningModeManager.h"
 #include "utils/Logger.h"
 #include <cpr/cpr.h>
 #include <nlohmann/json.hpp>
