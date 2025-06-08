@@ -54,6 +54,7 @@ void PoolFailover::onError(const QString& error) {
         emit connectionError("Todos los pools fallaron. El minero está sin conexión.");
         return;
     }
+    
 
     tryNextPool();
 }
