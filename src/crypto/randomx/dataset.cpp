@@ -17,8 +17,8 @@
 #include "crypto/randomx/jit_compiler.hpp"
 #include "crypto/randomx/intrin_portable.h"
 
-#include "3rdparty/argon2/include/argon2.h"
-#include "3rdparty/argon2/lib/core.h"
+#include "crypto/argon2/include/argon2.h"
+#include "crypto/argon2/lib/core.h"
 
 //static_assert(RANDOMX_ARGON_MEMORY % (RANDOMX_ARGON_LANES * ARGON2_SYNC_POINTS) == 0, "RANDOMX_ARGON_MEMORY - invalid value");
 static_assert(ARGON2_BLOCK_SIZE == randomx::ArgonBlockSize, "Unexpected value of ARGON2_BLOCK_SIZE");

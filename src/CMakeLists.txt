@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(zartrux_src)
+project(zartrux_src LANGUAGES CXX ASM)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -23,6 +23,22 @@ file(GLOB_RECURSE UTILS_SRC "utils/*.cpp")
 file(GLOB_RECURSE SECURITY_SRC "security/*.cpp")
 file(GLOB_RECURSE THREADS_SRC "core/threads/*.cpp")
 
+# Recopilar fuentes de crypto
+file(GLOB_RECURSE CRYPTO_SRC
+    "crypto/rx/*.cpp"
+    "crypto/randomx/*.cpp"
+    "crypto/randomx/*.c"
+    "crypto/randomx/blake2/*.c"
+    "crypto/randomx/blake2/avx2/*.c"
+)
+# Añadir explícitamente los archivos de ensamblador
+set(CRYPTO_ASM_SRC
+    ${CMAKE_CURRENT_SOURCE_DIR}/crypto/randomx/jit_compiler_a64_static.S
+    ${CMAKE_CURRENT_SOURCE_DIR}/crypto/randomx/jit_compiler_x86_static.asm
+    ${CMAKE_CURRENT_SOURCE_DIR}/crypto/randomx/jit_compiler_x86_static.S
+)
+
+
 # Librería interna principal
 add_library(zartrux_core_libs STATIC
     ${CORE_SRC}
@@ -32,6 +48,8 @@ add_library(zartrux_core_libs STATIC
     ${UTILS_SRC}
     ${SECURITY_SRC}
     ${THREADS_SRC}
+    ${CRYPTO_SRC}
+    ${CRYPTO_ASM_SRC}
 )
 
 target_include_directories(zartrux_core_libs PUBLIC
@@ -42,6 +60,12 @@ target_include_directories(zartrux_core_libs PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/runtime
     ${CMAKE_CURRENT_SOURCE_DIR}/utils
     ${CMAKE_CURRENT_SOURCE_DIR}/security
+    # Directorios de crypto añadidos
+    ${CMAKE_CURRENT_SOURCE_DIR}/crypto
+    ${CMAKE_CURRENT_SOURCE_DIR}/crypto/rx
+    ${CMAKE_CURRENT_SOURCE_DIR}/crypto/randomx
+    ${CMAKE_CURRENT_SOURCE_DIR}/crypto/randomx/blake2
+    ${CMAKE_CURRENT_SOURCE_DIR}/crypto/randomx/blake2/avx2
 )
 
 target_link_libraries(zartrux_core_libs PUBLIC Threads::Threads)
