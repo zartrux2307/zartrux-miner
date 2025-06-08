@@ -1,5 +1,3 @@
-
-
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
@@ -7,11 +5,14 @@
 #include "crypto/randomx/blake2/blake2.h"
 #include "crypto/randomx/blake2/blake2-impl.h"
 
+// --- CORRECCIÓN: Se reemplazó la macro UINT64_C() por el sufijo estándar ULL ---
 const uint64_t blake2b_IV[8] = {
-	UINT64_C(0x6a09e667f3bcc908), UINT64_C(0xbb67ae8584caa73b),
-	UINT64_C(0x3c6ef372fe94f82b), UINT64_C(0xa54ff53a5f1d36f1),
-	UINT64_C(0x510e527fade682d1), UINT64_C(0x9b05688c2b3e6c1f),
-	UINT64_C(0x1f83d9abfb41bd6b), UINT64_C(0x5be0cd19137e2179) };
+	0x6a09e667f3bcc908ULL, 0xbb67ae8584caa73bULL,
+	0x3c6ef372fe94f82bULL, 0xa54ff53a5f1d36f1ULL,
+	0x510e527fade682d1ULL, 0x9b05688c2b3e6c1fULL,
+	0x1f83d9abfb41bd6bULL, 0x5be0cd19137e2179ULL 
+};
+// --- FIN DE LA CORRECCIÓN ---
 
 static const uint8_t blake2b_sigma[12][16] = {
 	{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
@@ -360,5 +361,3 @@ fail:
 	return ret;
 #undef TRY
 }
-
-

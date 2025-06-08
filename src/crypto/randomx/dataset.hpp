@@ -1,5 +1,3 @@
-
-
 #pragma once
 
 #include <cstdint>
@@ -8,6 +6,7 @@
 #include "crypto/randomx/common.hpp"
 #include "crypto/randomx/superscalar_program.hpp"
 #include "crypto/randomx/allocator.hpp"
+#include "crypto/randomx/jit_compiler.hpp" // <--- CORRECCIÓN: Se añadió esta cabecera que faltaba
 
 /* Global scope for C binding */
 struct randomx_dataset {

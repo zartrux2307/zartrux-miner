@@ -1,5 +1,3 @@
-
-
 #include "crypto/randomx/common.hpp"
 #include "crypto/randomx/randomx.h"
 #include "crypto/randomx/dataset.hpp"
@@ -8,6 +6,7 @@
 #include "crypto/randomx/vm_compiled.hpp"
 #include "crypto/randomx/vm_compiled_light.hpp"
 #include "crypto/randomx/blake2/blake2.h"
+#include "crypto/randomx/jit_compiler.hpp" // <--- CORRECCIÓN: Se añadió esta cabecera que faltaba
 
 #if defined(_M_X64) || defined(__x86_64__)
 #include "crypto/randomx/jit_compiler_x86_static.hpp"
@@ -15,13 +14,13 @@
 #include "crypto/randomx/jit_compiler_a64_static.hpp"
 #endif
 
-#include "backend/cpu/Cpu.h"
-#include "crypto/common/VirtualMemory.h"
+
+#include "memory/VirtualMemory.h"
 #include <mutex>
 
 #include <cassert>
 
-#include "crypto/rx/Profiler.h"
+#include  "runtime/Profiler.h"
 
 RandomX_ConfigurationWownero::RandomX_ConfigurationWownero()
 {
@@ -271,7 +270,7 @@ typedef void(randomx::JitCompilerX86::* InstructionGeneratorX86_2)(const randomx
 	INST_HANDLE(IMUL_M, IMUL_R);
 
 #if defined(XMRIG_FEATURE_ASM) && (defined(_M_X64) || defined(__x86_64__))
-	if (hasBMI2) {
+	if (xmrig::Cpu::info()->hasBMI2()) {
 		INST_HANDLE2(IMULH_R, IMULH_R_BMI2, IMUL_M);
 		INST_HANDLE2(IMULH_M, IMULH_M_BMI2, IMULH_R);
 	}
@@ -313,7 +312,7 @@ typedef void(randomx::JitCompilerX86::* InstructionGeneratorX86_2)(const randomx
 #endif
 
 #if defined(XMRIG_FEATURE_ASM) && (defined(_M_X64) || defined(__x86_64__))
-	if (hasBMI2) {
+	if (xmrig::Cpu::info()->hasBMI2()) {
 		INST_HANDLE2(CFROUND, CFROUND_BMI2, CBRANCH);
 	}
 	else
@@ -574,5 +573,4 @@ extern "C" {
 		rx_blake2b_wrapper::run(tempHash, sizeof(tempHash), nextInput, nextInputSize);
 		machine->hashAndFill(output, tempHash);
 	}
-
 }

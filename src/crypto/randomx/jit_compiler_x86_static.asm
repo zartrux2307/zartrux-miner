@@ -1,8 +1,11 @@
+; Archivo de ensamblador para RandomX JIT (sintaxis MASM para Visual Studio)
 
+; --- CORRECCIÓN ---
+; Se eliminaron las directivas "SEGMENT" y "ENDS". El ensamblador ml64.exe
+; colocará automáticamente este código en la sección ejecutable (.text) del
+; objeto final, que es el comportamiento correcto y soluciona el error de sintaxis.
 
 IFDEF RAX
-
-_RANDOMX_JITX86_STATIC SEGMENT PAGE READ EXECUTE
 
 PUBLIC randomx_prefetch_scratchpad
 PUBLIC randomx_prefetch_scratchpad_bmi2
@@ -311,8 +314,6 @@ randomx_program_end ENDP
 randomx_reciprocal_fast PROC
 	include asm/randomx_reciprocal.inc
 randomx_reciprocal_fast ENDP
-
-_RANDOMX_JITX86_STATIC ENDS
 
 ENDIF
 

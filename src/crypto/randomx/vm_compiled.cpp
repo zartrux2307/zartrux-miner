@@ -2,7 +2,7 @@
 
 #include "crypto/randomx/vm_compiled.hpp"
 #include "crypto/randomx/common.hpp"
-#include "crypto/rx/Profiler.h"
+#include "runtime/Profiler.h"
 
 namespace randomx {
 
@@ -30,7 +30,7 @@ namespace randomx {
 	void CompiledVm<softAes>::execute() {
 		PROFILE_SCOPE(RandomX_JIT_execute);
 
-#		ifdef XMRIG_ARM
+#		ifdef zartux_asm
 		memcpy(reg.f, config.eMask, sizeof(config.eMask));
 #		endif
 		compiler.getProgramFunc()(reg, mem, scratchpad, RandomX_CurrentConfig.ProgramIterations);

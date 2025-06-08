@@ -2,7 +2,7 @@
 
 
 #include <stdexcept>
-#include "crypto/common/VirtualMemory.h"
+#include "memory/VirtualMemory.h"
 #include "crypto/randomx/virtual_memory.hpp"
 
 
