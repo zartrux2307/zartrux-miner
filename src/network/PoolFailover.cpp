@@ -1,71 +1,106 @@
 #include "PoolFailover.h"
-#include <QDebug>
-#include <QTimer>
+#include "StratumClient.h" // Se incluye el .h completo solo aquí
+#include "utils/Logger.h"
+#include <thread>
+#include <chrono>
 
-PoolFailover::PoolFailover(QObject* parent)
-    : QObject(parent), m_currentIndex(0), m_client(std::make_unique<StratumClient>(this))
-{
-    // Conecta señales críticas del cliente Stratum a los slots de PoolFailover
-    connect(m_client.get(), &StratumClient::connected, this, &PoolFailover::onConnected);
-    connect(m_client.get(), &StratumClient::errorOccurred, this, &PoolFailover::onError);
-    connect(m_client.get(), &StratumClient::connectionLost, this, &PoolFailover::tryNextPool);
+PoolFailover::PoolFailover() {
+    // La inicialización del cliente se mueve a start() para permitir re-conexiones.
 }
 
-void PoolFailover::setPools(const QVector<QPair<QString, quint16>>& pools) {
-    m_pools.clear();
-    for (const auto& pool : pools) {
-        m_pools.push_back(PoolEntry{pool.first, pool.second, 0});
-    }
+PoolFailover::~PoolFailover() {
+    stop();
+}
+
+void PoolFailover::setPools(const std::vector<PoolConfig>& pools) {
+    m_pools = pools;
     m_currentIndex = 0;
 }
 
 void PoolFailover::start() {
-    if (m_pools.isEmpty()) {
-        emit connectionError("Lista de pools vacía.");
+    if (m_pools.empty()) {
+        if (onConnectionError) {
+            onConnectionError("La lista de pools está vacía.");
+        }
         return;
     }
-    auto& pool = m_pools[m_currentIndex];
-    qDebug() << "[PoolFailover] Intentando conectar a pool:" << pool.host << ":" << pool.port;
-    m_client->connectToPool(pool.host, pool.port);
+    tryNextPool();
+}
+
+void PoolFailover::stop() {
+    if (m_client) {
+        m_client->disconnect();
+    }
+}
+
+void PoolFailover::tryNextPool() {
+    if (m_pools.empty()) return;
+
+    // Obtener el pool actual
+    const auto& currentPool = m_pools[m_currentIndex];
+
+    Logger::info("PoolFailover", "Intentando conectar al pool: %s:%d", currentPool.host.c_str(), currentPool.port);
+
+    // Crear y configurar un nuevo cliente para cada intento de conexión principal
+    m_client = std::make_unique<StratumClient>();
+
+    // --- CORRECCIÓN: Se conectan los callbacks de C++ ---
+    m_client->onConnected = [this]() { this->onConnected(); };
+    m_client->onError = [this](const std::string& err) { this->onError(err); };
+    m_client->onDisconnected = [this]() { this->onConnectionLost(); };
+    
+    m_client->connectToPool(currentPool.host, currentPool.port);
 }
 
 void PoolFailover::onConnected() {
     const auto& pool = m_pools[m_currentIndex];
-    qDebug() << "[PoolFailover] Conectado exitosamente al pool:" << pool.host << ":" << pool.port;
-    emit failoverOccurred(pool.host, pool.port);
-}
-
-void PoolFailover::onError(const QString& error) {
-    qWarning() << "[PoolFailover] Error en pool actual:" << error;
-    auto& pool = m_pools[m_currentIndex];
-
-    if (++pool.retries < 3) { // 3 reintentos por pool antes de saltar
-        qDebug() << "[PoolFailover] Reintentando conexión con el mismo pool (" << pool.retries << "/3 ) ...";
-        QTimer::singleShot(1000, [this]() { start(); });
-        return;
-    }
-
-    qDebug() << "[PoolFailover] Max reintentos alcanzados, probando siguiente pool...";
-    pool.retries = 0; // Reset reintentos cuando vuelva a este pool
-    m_currentIndex = (m_currentIndex + 1) % m_pools.size();
-
-    // Si damos la vuelta completa → todos los pools fallaron
-    if (m_currentIndex == 0) {
-        emit connectionError("Todos los pools fallaron. El minero está sin conexión.");
-        return;
-    }
+    Logger::info("PoolFailover", "Conectado exitosamente al pool: %s:%d", pool.host.c_str(), pool.port);
     
+    // Reseteamos los reintentos del pool actual en caso de éxito
+    m_pools[m_currentIndex].retries = 0;
 
-    tryNextPool();
+    if (onFailoverOccurred) {
+        onFailoverOccurred(pool.host, pool.port);
+    }
 }
 
-void PoolFailover::tryNextPool() {
-    auto& pool = m_pools[m_currentIndex];
-    qDebug() << "[PoolFailover] Conectando con siguiente pool:" << pool.host << ":" << pool.port;
-    m_client->disconnect();
+void PoolFailover::onError(const std::string& error) {
+    Logger::warn("PoolFailover", "Error en el pool actual: %s", error.c_str());
+    scheduleRetry();
+}
 
-    // Espera breve antes de intentar el siguiente (anti-flood)
-    QTimer::singleShot(500, [this, pool]() {
-        m_client->connectToPool(pool.host, pool.port);
-    });
+void PoolFailover::onConnectionLost() {
+    Logger::warn("PoolFailover", "Conexión perdida con el pool actual. Intentando con el siguiente...");
+    scheduleRetry();
+}
+
+void PoolFailover::scheduleRetry() {
+    if (m_pools.empty()) return;
+
+    // Incrementar reintentos para el pool actual
+    m_pools[m_currentIndex].retries++;
+
+    if (m_pools[m_currentIndex].retries >= m_maxRetriesPerPool) {
+        // Si se alcanzan los reintentos máximos, pasar al siguiente pool
+        Logger::warn("PoolFailover", "Máximo de reintentos alcanzado para el pool actual. Cambiando al siguiente.");
+        m_pools[m_currentIndex].retries = 0; // Resetear para futura rotación
+        m_currentIndex = (m_currentIndex + 1) % m_pools.size();
+
+        // Si hemos dado una vuelta completa y estamos de nuevo en el primer pool
+        if (m_currentIndex == 0) {
+            Logger::error("PoolFailover", "Todos los pools han fallado. Esperando antes de reintentar el ciclo.");
+            if (onConnectionError) {
+                onConnectionError("Todos los pools han fallado.");
+            }
+            // Esperar un tiempo antes de volver a empezar el ciclo para no saturar
+            std::this_thread::sleep_for(std::chrono::seconds(10));
+        }
+    } else {
+        Logger::info("PoolFailover", "Reintentando conexión con el mismo pool (%d/%d)...", 
+                     m_pools[m_currentIndex].retries, m_maxRetriesPerPool);
+    }
+
+    // Intentar la siguiente conexión
+    std::this_thread::sleep_for(std::chrono::seconds(1)); // Pequeña espera antes de reintentar
+    tryNextPool();
 }
