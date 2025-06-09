@@ -5,12 +5,11 @@
 #include <vector>
 #include <functional>
 #include <optional>
-#include <randomx.h>
 #include <span>
 #include <thread>
 #include <future>
 #include <mutex>
-
+#include "crypto/randomx/randomx.h"
 class NonceValidator {
 public:
     static constexpr size_t HASH_SIZE = 32;

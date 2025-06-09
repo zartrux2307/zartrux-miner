@@ -1,20 +1,16 @@
 #include "core/ia/IAReceiver.h"
+#include "core/JobManager.h" // Se incluye para la definición de MiningJob
 #include "utils/Logger.h"
+
 #include <cpr/cpr.h>
 #include <nlohmann/json.hpp>
-#include <fmt/format.h>
 #include <chrono>
 
 using json = nlohmann::json;
 using namespace std::chrono;
 
 namespace {
-    constexpr int MAX_RETRIES = 3;
-    constexpr auto RETRY_DELAY = milliseconds(1000);
-    constexpr auto REQUEST_TIMEOUT = milliseconds(5000);
-    
-    // Endpoints
-    const std::string BASE_URL = "http://localhost:8080";
+    // Endpoints de la API
     const std::string NONCE_ENDPOINT = "/api/v1/nonce";
     const std::string VERIFY_ENDPOINT = "/api/v1/verify";
 }
@@ -30,100 +26,90 @@ IAReceiver::IAReceiver()
     , m_lastRequest(steady_clock::now())
     , m_requestCount(0)
     , m_successCount(0) {
-    
-    // Configurar sesión HTTP
-    m_session->SetUrl(cpr::Url{BASE_URL});
-    m_session->SetTimeout(REQUEST_TIMEOUT);
-    m_session->SetVerifySsl(false); // Para desarrollo local
 }
+
+IAReceiver::~IAReceiver() = default;
 
 void IAReceiver::configure(const Config& config) {
     std::lock_guard<std::mutex> lock(m_mutex);
-    
+    m_config = config;
     m_enabled = config.enabled;
-    m_session->SetUrl(cpr::Url{config.serverUrl});
-    m_session->SetTimeout(cpr::Timeout{config.timeoutMs});
-    
-    if (!config.apiKey.empty()) {
-        m_session->SetHeader(cpr::Header{{"X-API-Key", config.apiKey}});
-    }
-    
-    Logger::info("IAReceiver", "Configurado: enabled={}, url={}", 
-                m_enabled, config.serverUrl);
+
+    // Configurar la sesión de CPR con los nuevos parámetros
+    m_session->SetTimeout(milliseconds(m_config.timeoutMs));
+    m_session->SetHeader({
+        {"Content-Type", "application/json"},
+        {"X-API-Key", m_config.apiKey}
+    });
+    Logger::info("IAReceiver", "Configuración del receptor de IA actualizada. URL: %s, Habilitado: %s", 
+                 m_config.serverUrl.c_str(), m_enabled ? "Sí" : "No");
 }
 
-std::optional<uint64_t> IAReceiver::requestNonce() {
-    if (!m_enabled) return std::nullopt;
+void IAReceiver::setEnabled(bool enabled) {
+    m_enabled = enabled;
+}
+
+bool IAReceiver::isEnabled() const {
+    return m_enabled;
+}
+
+std::vector<uint64_t> IAReceiver::requestNonces(const MiningJob& job) {
+    if (!m_enabled) {
+        return {};
+    }
 
     std::lock_guard<std::mutex> lock(m_mutex);
-    
+    m_lastRequest = steady_clock::now();
+    m_requestCount++;
+
     try {
-        // Verificar rate limiting
-        auto now = steady_clock::now();
-        if (now - m_lastRequest < milliseconds(100)) {
-            return std::nullopt;
-        }
-        m_lastRequest = now;
-        m_requestCount++;
-
-        // Preparar payload
         json payload = {
-            {"timestamp", duration_cast<milliseconds>(
-                system_clock::now().time_since_epoch()).count()},
-            {"request_id", m_requestCount}
+            {"job_id", job.id},
+            {"blob", job.blob}
         };
-
-        // Realizar solicitud POST
-        auto response = m_session->Post(
-            cpr::Url{m_session->GetUrl() + NONCE_ENDPOINT},
-            cpr::Body{payload.dump()},
-            cpr::Header{{"Content-Type", "application/json"}}
+        
+        // --- CORRECCIÓN: Se construye la URL completa y se pasa a Post ---
+        cpr::Response response = m_session->Post(
+            cpr::Url{m_config.serverUrl + NONCE_ENDPOINT},
+            cpr::Body{payload.dump()}
         );
 
-        // Verificar respuesta
         if (response.status_code == 200) {
             auto responseJson = json::parse(response.text);
-            if (responseJson.contains("nonce")) {
-                uint64_t nonce = responseJson["nonce"].get<uint64_t>();
+            if (responseJson.contains("nonces")) {
                 m_successCount++;
-                Logger::debug("IAReceiver", "Nonce recibido: {}", nonce);
-                return nonce;
+                return responseJson["nonces"].get<std::vector<uint64_t>>();
             }
         }
-        else {
-            Logger::warn("IAReceiver", "Error en solicitud: {} - {}", 
-                        response.status_code, response.text);
-        }
-    }
-    catch (const std::exception& e) {
-        Logger::error("IAReceiver", "Error en requestNonce: {}", e.what());
+        
+        Logger::warn("IAReceiver", "Error en la solicitud de nonces: Status %ld - %s", 
+                     response.status_code, response.text.c_str());
+
+    } catch (const std::exception& e) {
+        Logger::error("IAReceiver", "Excepción en requestNonces: %s", e.what());
     }
 
-    return std::nullopt;
+    return {};
 }
 
-bool IAReceiver::verifyNonce(uint64_t nonce, const std::string& hash) {
-    if (!m_enabled) return false;
-
-    std::lock_guard<std::mutex> lock(m_mutex);
+bool IAReceiver::verifyNonce(const std::string& nonce, const std::string& hash) {
+    if (!m_enabled) {
+        return false;
+    }
     
     try {
-        // Preparar payload
         json payload = {
             {"nonce", nonce},
             {"hash", hash},
-            {"timestamp", duration_cast<milliseconds>(
-                system_clock::now().time_since_epoch()).count()}
+            {"timestamp", duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count()}
         };
-
-        // Realizar solicitud POST
-        auto response = m_session->Post(
-            cpr::Url{m_session->GetUrl() + VERIFY_ENDPOINT},
-            cpr::Body{payload.dump()},
-            cpr::Header{{"Content-Type", "application/json"}}
+        
+        // --- CORRECCIÓN: Se construye la URL completa y se pasa a Post ---
+        cpr::Response response = m_session->Post(
+            cpr::Url{m_config.serverUrl + VERIFY_ENDPOINT},
+            cpr::Body{payload.dump()}
         );
 
-        // Verificar respuesta
         if (response.status_code == 200) {
             auto responseJson = json::parse(response.text);
             if (responseJson.contains("valid")) {
@@ -131,11 +117,11 @@ bool IAReceiver::verifyNonce(uint64_t nonce, const std::string& hash) {
             }
         }
         
-        Logger::warn("IAReceiver", "Error en verificación: {} - {}", 
-                    response.status_code, response.text);
-    }
-    catch (const std::exception& e) {
-        Logger::error("IAReceiver", "Error en verifyNonce: {}", e.what());
+        Logger::warn("IAReceiver", "Error en verificación de nonce: Status %ld - %s", 
+                     response.status_code, response.text.c_str());
+
+    } catch (const std::exception& e) {
+        Logger::error("IAReceiver", "Excepción en verifyNonce: %s", e.what());
     }
 
     return false;
@@ -146,16 +132,8 @@ std::pair<uint64_t, uint64_t> IAReceiver::getStats() const {
     return {m_requestCount, m_successCount};
 }
 
-void IAReceiver::reset() {
+void IAReceiver::resetStats() {
     std::lock_guard<std::mutex> lock(m_mutex);
     m_requestCount = 0;
     m_successCount = 0;
-    m_lastRequest = steady_clock::now();
 }
-
-bool IAReceiver::isEnabled() const {
-    return m_enabled;
-}
-
-// Constructor privado y destructor
-IAReceiver::~IAReceiver() = default;

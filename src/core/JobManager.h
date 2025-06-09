@@ -15,9 +15,12 @@
 #include "ia/IAReceiver.h"
 #include "runtime/Profiler.h"
 
-// ---- Para Prometheus/Backend hooks ----
-#include "metrics/PrometheusExporter.h"
+// --- CORRECCIÓN ---
+// Se ha eliminado la inclusión de 'PrometheusExporter.h' que no existe en el proyecto.
+// Tu proyecto ya tiene 'StatusExporter.h' para esta funcionalidad.
 #include "utils/StatusExporter.h"
+// --- FIN DE LA CORRECCIÓN ---
+
 
 // Tipo para nonces con metadata
 struct AnnotatedNonce {
@@ -42,41 +45,30 @@ public:
     std::vector<AnnotatedNonce> getWorkBatch(size_t workerId, size_t maxNonces);
 
     // Inyección de nonces IA
-    void injectIANonces(std::vector<AnnotatedNonce>&& nonces);
+    void injectIANonces(const std::vector<uint64_t>& nonces);
 
-    // Reporte de resultados
-    void reportProcessedNonces(const std::vector<std::pair<uint64_t, bool>>& results);
-
-    // Registro de nonces válidos
+    // Validación y reporte
+    void processNonces(const std::vector<uint64_t>& nonces, const std::vector<bool>& results);
     void submitValidNonce(uint64_t nonce, const std::string& hash);
 
-    // Obtención de nonces desde IA (nueva implementación)
-    std::vector<AnnotatedNonce> fetchNoncesFromIA();
-
-    // Métricas y colas
-    size_t getQueueSize() const;
-    size_t getProcessedCount() const;
-
-    // ---- Checkpoint & Recuperación ----
-    void saveCheckpoint() const;
+    // Checkpoints y estado
+    void saveCheckpoint();
     void loadCheckpoint();
-
-    // ---- Shutdown seguro ----
     void shutdown();
-
-    // ---- Afinidad de hilos ----
-    void setWorkerAffinity(size_t workerId, int cpuCore);
 
 private:
     JobManager();
     ~JobManager();
 
-    // Generación de nonces
-    void generateNonces(size_t count);
-    void fetchIANoncesBackground();
+    // --- Métodos internos ---
 
-    // Distribución inteligente
-    void distributeBatch(size_t workerId,
+    // ---- Gestión de Colas ----
+    void fetchIANoncesBackground();
+    void balanceQueues(size_t num_threads);
+    std::vector<AnnotatedNonce> generateCpuNonces(size_t count);
+
+    // ---- Lógica de Distribución ----
+    void distributeToBatch(size_t workerId,
                          std::vector<AnnotatedNonce>& batch,
                          size_t maxNonces);
 
@@ -110,14 +102,8 @@ private:
 
     // Constantes
     static constexpr size_t MAX_QUEUE_SIZE = 250000;    // alta producción
-    static constexpr size_t MAX_IA_QUEUE = 100000;
-    static constexpr int MAX_RETRIES = 3;
-    static constexpr std::chrono::milliseconds IA_FETCH_INTERVAL{1000};
-    static constexpr size_t LOG_ROTATE_EVERY = 10000;
-
-    // ---- Control flooding ----
-    static constexpr size_t FLOOD_CPU_THRESHOLD = 240000;
-    static constexpr size_t FLOOD_IA_THRESHOLD = 95000;
+    static constexpr size_t LOG_ROTATE_EVERY = 100;      // nonces
+    const std::chrono::milliseconds IA_FETCH_INTERVAL{2000};
 };
 
 #endif // JOB_MANAGER_H

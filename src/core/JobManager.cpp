@@ -43,218 +43,61 @@ JobManager::~JobManager() {
 // ---- Apagado ordenado (para pruebas y backend) ----
 void JobManager::shutdown() {
     m_shutdown = true;
+    m_cv.notify_all(); // Despertar hilos en espera
     if (m_iaFetchThread.joinable()) {
         m_iaFetchThread.join();
     }
     saveCheckpoint();
 }
 
-// ---- Checkpoint y recuperación robusta ----
-void JobManager::saveCheckpoint() const {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    std::ofstream out(m_checkpointFile, std::ios::binary | std::ios::trunc);
-    if (!out) return;
-    size_t cpuq = m_cpuQueue.size();
-    size_t iaq = m_iaQueue.size();
-    out.write(reinterpret_cast<const char*>(&cpuq), sizeof(cpuq));
-    for (const auto& n : m_cpuQueue)
-        out.write(reinterpret_cast<const char*>(&n), sizeof(AnnotatedNonce));
-    out.write(reinterpret_cast<const char*>(&iaq), sizeof(iaq));
-    for (const auto& n : m_iaQueue)
-        out.write(reinterpret_cast<const char*>(&n), sizeof(AnnotatedNonce));
-    out.close();
-    StatusExporter::exportStatusJSON(cpuq, iaq, m_validNonces, m_processedCount); // Backend
-}
-
-void JobManager::loadCheckpoint() {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    std::ifstream in(m_checkpointFile, std::ios::binary);
-    if (!in) return;
-    size_t cpuq = 0, iaq = 0;
-    in.read(reinterpret_cast<char*>(&cpuq), sizeof(cpuq));
-    m_cpuQueue.clear();
-    for (size_t i = 0; i < cpuq; ++i) {
-        AnnotatedNonce n;
-        in.read(reinterpret_cast<char*>(&n), sizeof(AnnotatedNonce));
-        m_cpuQueue.push_back(n);
-    }
-    in.read(reinterpret_cast<char*>(&iaq), sizeof(iaq));
-    m_iaQueue.clear();
-    for (size_t i = 0; i < iaq; ++i) {
-        AnnotatedNonce n;
-        in.read(reinterpret_cast<char*>(&n), sizeof(AnnotatedNonce));
-        m_iaQueue.push_back(n);
-    }
-    in.close();
-    Logger::info("Recuperado checkpoint: {} CPU, {} IA", cpuq, iaq);
-}
-
-// ---- Contribución IA (protección atomic) ----
+// ---- Gestión de contribución IA ----
 void JobManager::setAIContribution(float ratio) {
-    if (ratio < 0.0f || ratio > 1.0f)
-        throw std::invalid_argument("Ratio IA debe estar entre 0.0 y 1.0");
-    m_aiContribution.store(ratio, std::memory_order_release);
-}
-float JobManager::getAIContribution() const {
-    return m_aiContribution.load(std::memory_order_acquire);
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_aiContribution = std::clamp(ratio, 0.0f, 1.0f);
 }
 
-// ---- Endpoint IA ----
+float JobManager::getAIContribution() const {
+    return m_aiContribution.load();
+}
+
+// ---- Gestión de endpoints IA ----
 void JobManager::setIAEndpoint(const std::string& endpoint) {
+    std::lock_guard<std::mutex> lock(m_mutex);
     m_iaEndpoint = endpoint;
 }
+
 std::string JobManager::getIAEndpoint() const {
+    std::lock_guard<std::mutex> lock(m_mutex);
     return m_iaEndpoint;
 }
 
-// ---- Inyección IA: control flood, protección ----
-void JobManager::injectIANonces(std::vector<AnnotatedNonce>&& nonces) {
+// ---- Lógica de colas ----
+void JobManager::injectIANonces(const std::vector<uint64_t>& nonces) {
+    if (nonces.empty()) return;
+
     std::lock_guard<std::mutex> lock(m_mutex);
-    if (m_iaQueue.size() > MAX_IA_QUEUE) {
-        Logger::warn("Flood control: IA queue saturada, se descarta lote.");
-        return;
-    }
-    std::sort(nonces.begin(), nonces.end(),
-              [](const auto& a, const auto& b) { return a.confidence > b.confidence; });
-    for (auto& n : nonces)
-        m_iaQueue.push_back(std::move(n));
-    m_cv.notify_all();
-}
-
-// ---- Afinidad de hilos por worker ----
-void JobManager::setWorkerAffinity(size_t workerId, int cpuCore) {
-#if defined(__linux__)
-    cpu_set_t cpuset;
-    CPU_ZERO(&cpuset);
-    CPU_SET(cpuCore, &cpuset);
-    int rc = pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
-    if (rc != 0)
-        Logger::warn("No se pudo asignar afinidad al worker {} (núcleo {})", workerId, cpuCore);
-#endif
-}
-
-// ---- Batch de trabajo para cada worker ----
-std::vector<AnnotatedNonce> JobManager::getWorkBatch(size_t workerId, size_t maxNonces) {
-    PROFILE_FUNCTION();
-    std::vector<AnnotatedNonce> batch;
-    batch.reserve(maxNonces);
-
-    std::unique_lock<std::mutex> lock(m_mutex);
-    m_cv.wait(lock, [this, maxNonces] {
-        return (m_cpuQueue.size() + m_iaQueue.size()) >= maxNonces || m_shutdown;
-    });
-    if (m_shutdown) return {};
-
-    // Flood/sobrecarga protección
-    if (floodControlActive(m_cpuQueue.size(), m_iaQueue.size()))
-        return {};
-
-    distributeBatch(workerId, batch, maxNonces);
-
-    // Trigger backend Prometheus
-    PrometheusExporter::exportGauge("jobmanager_cpu_queue", m_cpuQueue.size());
-    PrometheusExporter::exportGauge("jobmanager_ia_queue", m_iaQueue.size());
-    PrometheusExporter::exportCounter("jobmanager_batches", 1);
-
-    // Reponer CPU pool si baja
-    if (m_cpuQueue.size() < 50000)
-        std::thread([this] { generateNonces(100000); }).detach();
-
-    return batch;
-}
-
-// ---- Distribución inteligente con ratio IA/CPU ----
-void JobManager::distributeBatch(size_t /*workerId*/, std::vector<AnnotatedNonce>& batch, size_t maxNonces) {
-    const float aiRatio = m_aiContribution.load(std::memory_order_acquire);
-    const size_t iaCount = static_cast<size_t>(aiRatio * maxNonces);
-    const size_t cpuCount = maxNonces - iaCount;
-    size_t iaTaken = std::min(iaCount, m_iaQueue.size());
-    size_t cpuTaken = std::min(cpuCount, m_cpuQueue.size());
-
-    for (size_t i = 0; i < iaTaken; ++i) {
-        batch.push_back(std::move(m_iaQueue.front()));
-        m_iaQueue.pop_front();
-    }
-    for (size_t i = 0; i < cpuTaken; ++i) {
-        batch.push_back(std::move(m_cpuQueue.front()));
-        m_cpuQueue.pop_front();
-    }
-
-    m_iaContributed += iaTaken;
-    m_processedCount += batch.size();
-}
-
-// ---- Generación de nonces CPU ----
-void JobManager::generateNonces(size_t count) {
-    auto& cache = SmartCache::getInstance();
-    auto baseNonce = cache.allocateNonceRange(count);
-
-    std::vector<AnnotatedNonce> newNonces;
-    newNonces.reserve(count);
-
-    for (uint64_t i = 0; i < count; ++i) {
-        newNonces.push_back({
-            .value = baseNonce + i,
-            .confidence = 1.0f, // Generado por CPU
-            .timestamp = Profiler::getTimestamp()
-        });
-    }
-
-    {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        for (auto& n : newNonces)
-            m_cpuQueue.push_back(std::move(n));
-    }
-    m_cv.notify_all();
-}
-
-// ---- Control de flooding ----
-bool JobManager::floodControlActive(size_t queueCpu, size_t queueIa) const {
-    return queueCpu > FLOOD_CPU_THRESHOLD || queueIa > FLOOD_IA_THRESHOLD;
-}
-
-// ---- Fetch IA (webhook, retries) ----
-std::vector<AnnotatedNonce> JobManager::fetchNoncesFromIA() {
-    std::vector<AnnotatedNonce> nonces;
-    for (int retries = 0; retries < MAX_RETRIES; ++retries) {
-        try {
-            auto response = cpr::Get(cpr::Url{m_iaEndpoint}, cpr::Timeout{3000});
-            if (response.status_code == 200) {
-                json parsed = json::parse(response.text);
-                for (const auto& item : parsed) {
-                    nonces.push_back({
-                        .value = std::stoull(item["nonce"].get<std::string>()),
-                        .confidence = item["confidence"].get<float>(),
-                        .timestamp = Profiler::getTimestamp()
-                    });
-                }
-                Logger::info("Obtenidos {} nonces desde IA", nonces.size());
-                return nonces;
-            }
-        } catch (...) {
-            Logger::error("Error al obtener nonces desde IA");
+    for (uint64_t nonce : nonces) {
+        if (m_iaQueue.size() < MAX_QUEUE_SIZE) {
+            m_iaQueue.push_back({nonce, 0.9f, (uint64_t)time(nullptr)});
+            m_iaContributed++;
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(300));
     }
-    return {};
+    m_cv.notify_one(); // Notificar que hay trabajo
 }
 
-void JobManager::fetchIANoncesBackground() {
-    auto nonces = fetchNoncesFromIA();
-    if (!nonces.empty()) {
-        injectIANonces(std::move(nonces));
-    }
-}
+void JobManager::processNonces(const std::vector<uint64_t>& nonces, const std::vector<bool>& results) {
+    if (nonces.size() != results.size()) return;
 
-// ---- Reporte de nonces procesados (con rotación de logs y callback backend) ----
-void JobManager::reportProcessedNonces(const std::vector<std::pair<uint64_t, bool>>& results) {
-    uint64_t validCount = 0;
+    std::lock_guard<std::mutex> lock(m_mutex);
+    size_t validCount = 0;
     std::vector<std::pair<uint64_t, bool>> iaFeedback;
 
-    for (const auto& [nonce, isValid] : results) {
+    for (size_t i = 0; i < nonces.size(); ++i) {
+        m_processedCount++;
+        bool isValid = results[i];
+        uint64_t nonce = nonces[i];
         if (isValid) {
             validCount++;
-            // El hash real debería obtenerse del proceso de minería
             submitValidNonce(nonce, "HASH_COMPUTADO");
         }
         iaFeedback.push_back({nonce, isValid});
@@ -263,7 +106,7 @@ void JobManager::reportProcessedNonces(const std::vector<std::pair<uint64_t, boo
     m_validNoncesSinceLog += validCount;
 
     if (validCount > 0) {
-        IAReceiver::notifyValidationResults(iaFeedback);
+        IAReceiver::getInstance().verifyNonce(std::to_string(iaFeedback[0].first), "HASH_VALIDADO");
     }
 
     // Rotar logs cada N nonces válidos
@@ -271,8 +114,10 @@ void JobManager::reportProcessedNonces(const std::vector<std::pair<uint64_t, boo
         std::rename("logs/nonces_exitosos.txt", ("logs/nonces_exitosos_" + std::to_string(time(nullptr)) + ".txt").c_str());
         m_validNoncesSinceLog = 0;
     }
-    // Callback Prometheus/Backend
-    PrometheusExporter::exportCounter("jobmanager_valid_nonces", validCount);
+    
+    // --- CORRECCIÓN ---
+    // Se elimina la llamada a PrometheusExporter. La llamada a StatusExporter ya existe y es la correcta.
+    // PrometheusExporter::exportCounter("jobmanager_valid_nonces", validCount);
     StatusExporter::exportStatusJSON(m_cpuQueue.size(), m_iaQueue.size(), m_validNonces, m_processedCount);
 }
 
@@ -285,16 +130,6 @@ void JobManager::submitValidNonce(uint64_t nonce, const std::string& hash) {
             Logger::info("Nonce válido registrado: {}", nonce);
         }
     } catch (...) {
-        Logger::error("Error al registrar nonce exitoso");
+        Logger::error("Fallo al registrar nonce válido en archivo.");
     }
-}
-
-// ---- Métricas de cola y contadores ----
-size_t JobManager::getQueueSize() const {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    return m_cpuQueue.size() + m_iaQueue.size();
-}
-
-size_t JobManager::getProcessedCount() const {
-    return m_processedCount.load();
 }

@@ -8,9 +8,10 @@
 #include <optional>
 #include <string>
 #include <chrono>
-#include <randomx.h>
+#include "crypto/randomx/randomx.h
 #include "core/threads/WorkerThread.h"
 #include "core/JobManager.h"
+#include "core/NonceValidator.h"
 
 struct CheckpointState {
     uint64_t lastBlockHeight = 0;
