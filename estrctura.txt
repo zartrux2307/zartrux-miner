@@ -4,8 +4,8 @@ zartrux-miner/
 ├── README.md                           # Documentación principal del sistema
 
 ├── src/                                # Código fuente principal (C++)
-        CMakeLists.txt                  # Compilación local para `src/`
-│   ├── zarmain.cpp                     # Punto de entrada del minero (main C++)
+   src/CMakeLists.txt                  # Compilación local para `src/`
+│  src/zarmain.cpp                     # Punto de entrada del minero (main C++)
 │   ├── src/core/
 │   │   ├── MinerCore.cpp/.h            # Núcleo de control de minería  ok✅ 
 │   │   ├── JobManager.cpp/.h           # Gestión de trabajos y distribución de nonces ok✅ 
@@ -13,12 +13,12 @@ zartrux-miner/
 │   │   ├── NonceValidator.cpp/.h       # Validación de nonces y filtrado  ok✅
 │   │   ├── MiningModeManager.cpp/.h    # Gestión del modo (solo, pool, híbrido y ia)ok✅
 │   │   ├── hash.cpp/.h                 # Funciones de hashing ok✅
-            SmartCache.cpp/.h           # fundamental para el rendimiento del sistema minero, especialmente en entornos con alta carga de trabajo y múltiples hilos de ejecución ok✅ 
-│   │   ├── core/threads/
+            SmartCache.cpp/.h           # fundamental para el rendimiento del sistema minero, especialmente en en
+        src/core/threads/
 │   │   │   ├── WorkerThread.cpp/.h     # Ejecución paralela de minería por hilo ok✅
-│   │   ├── core/ia/
+│   │   src/core/ia/
 │   │   │   ├── IAReceiver.cpp/.h       # Recepción de nonces desde IA (ZMQ/Socket)ok✅
-│   │   └── CMakeLists.txt
+
 │   ├ src/utils/
 │   │   ├── Logger.cpp/.h               # Sistema de logging para consola y archivo ok✅
 │   │   ├── nonce_logger_adapter.cpp/.h # Adaptador de logs para nonces exitosos ok✅
@@ -27,26 +27,43 @@ zartrux-miner/
 │   │   ├── NodeInfo.h                  # Info de nodo local para conectividad ok✅
 │   │   ├── config_manager.cpp/.h       # Gestión de configuración JSON ok✅
 │   │   ├── StatusExporter.cpp/.h       # Exporta estado del sistema a archivo JSON ok✅
-│   │   └── CMakeLists.txt ok✅
-│   ├─── src/crypto/ 
-│   │   └──     crypto/rx/ 
-                           Profiler.h
-                           Profiler.cpp
-│   │       └── crypto/randomx/
+│   │   └──Chrono.cpp/.h
+│   │    
+
+           src/crypto/
+
+           src/crypto/argon2/
+                      src/crypto/argon2/include/
+                                            argon2.h
+                      src/crypto/argon2/lib/
+                                        argon2-template-64.h
+                                        core.c
+                                        core.h
+                                        encoding.c
+                                        encoding.h
+                                        genkat.c
+                                        genkat.h
+                                        impl-select.c
+                                        impl-select.h
+                       src/crypto/argon2/lib/blake2/
+                                              blake2-impl.h
+                                              blake2.c
+                                              blake2.h
+           src/crypto/randomx/
                              aes_hash.hpp
                              allocator.cpp
                              allocator.hpp
                              blake2_generator.cpp
                              blake2_generator.hpp
                              bytecode_machine.cpp
-                              bytecode_machine.hpp
-                              common.hpp
-                              configuration.h
-                               dataset.cpp
-                              dataset.hpp
-                               instruction.hpp
-                              instructions_portable.cpp
-                              intrin_portable.h
+                             bytecode_machine.hpp
+                             common.hpp
+                             configuration.h
+                             dataset.cpp
+                             dataset.hpp
+                             instruction.hpp
+                             instructions_portable.cpp
+                             intrin_portable.h
                              jit_compiler.hpp
                              jit_compiler_a64.cpp
                              jit_compiler_a64.hpp
@@ -54,7 +71,7 @@ zartrux-miner/
                              jit_compiler_a64_static.S
                              jit_compiler_fallback.cpp
                              jit_compiler_fallback.hpp
-                              jit_compiler_x86.cpp
+                             jit_compiler_x86.cpp
                              jit_compiler_x86.hpp
                              jit_compiler_x86_static.asm
                              jit_compiler_x86_static.hpp
@@ -62,39 +79,39 @@ zartrux-miner/
                              program.hpp
                              randomx.cpp
                              randomx.h
-                              reciprocal.c
-                            reciprocal.h
-                           soft_aes.cpp
-                           soft_aes.h
-                          superscalar.cpp
-                          superscalar.hpp
-                         superscalar_program.hpp
-                          virtual_machine.cpp
-                          virtual_machine.hpp
-                          virtual_memory.cpp
-                         virtual_memory.hpp
-                         vm_compiled.cpp
-                        vm_compiled.hpp
-                        vm_compiled_light.cpp
-                       vm_compiled_light.hpp
-                          vm_interpreted.cpp
-                        vm_interpreted.hpp
-                      vm_interpreted_light.cpp
-                     vm_interpreted_light.hpp
-                                    randomx/ blake2/
-                                                 blake2-impl.h
-                                                  blake2.h
-                                                 blake2b-round.h
-                                                  blake2b.c
-                                                  blake2b_sse41.c
-                                                   blamka-round-ref.h
-                                                    endian.h
-                                                           randomx/ blake2/avx2\
-                                                                                   blake2.h
-                                                                                   blake2b-common.h
-                                                                                    blake2b-load-avx2.h
-                                                                                    blake2b.h
-                                                                                    blake2b_avx2.c
+                             reciprocal.c
+                             reciprocal.h
+                             soft_aes.cpp
+                             soft_aes.h
+                             superscalar.cpp
+                             superscalar.hpp
+                             superscalar_program.hpp
+                             virtual_machine.cpp
+                             virtual_machine.hpp
+                             virtual_memory.cpp
+                             virtual_memory.hpp
+                             vm_compiled.cpp
+                             vm_compiled.hpp
+                             vm_compiled_light.cpp
+                             vm_compiled_light.hpp
+                             vm_interpreted.cpp
+                             vm_interpreted.hpp
+                             vm_interpreted_light.cpp
+                              vm_interpreted_light.hpp
+   src/crypto/randomx/blake2/
+                           blake2-impl.h
+                           blake2.h
+                           blake2b-round.h
+                           blake2b.c
+                           blake2b_sse41.c
+                           blamka-round-ref.h
+                           endian.h
+    src/crypto/randomx/blake2/avx2/
+                             blake2.h
+                             blake2b-common.h
+                             blake2b-load-avx2.h
+                             blake2b.h
+                             blake2b_avx2.c
 
      
 │
@@ -106,6 +123,7 @@ zartrux-miner/
 │   ├── src/memory/
 │   │   ├── LegacyAllocator.cpp/.h      # Asignación de memoria para legacy systemsok✅
 │   │   ├── SmartCache.cpp/.h           # Cacheo inteligente para RandomX y buffersok✅
+            VirtualMemory.cpp/.h
 │   │   └── CMakeLists.txt
 │
 │   ├── src/runtime/
@@ -117,26 +135,28 @@ zartrux-miner/
 ├── src/zarbackend/
 │   ├── server.py                       # Servidor web Flask ok✅
 │   ├── zartrux_status.json             # Estado actual exportado por el minero ok✅
-│   ├── templates/
-│   │   └── index.html  # Interfaz web ok✅
-             logo.zar png   ok✅              
-│   └── static/
-│       ├── css/styles.css              # Estilo visual ok✅
-│       └── js/main.js                  # Scripts JS diná ok✅
+│  src/zarbackend/ templates/
+│                          index.html  # Interfaz web ok✅
+                            logo.zar png   ok✅              
+│    src/zarbackend/static/
+│      src/zarbackend/static/css/
+                                 styles.css  # Estilo visual ok✅
 
-│
+│       src/zarbackend/static/js/
+                                main.j # Scripts JS diná ok✅
 
-
-│   ├── src/arch/
-│   │   └── x8ag/                        # Optimizaciones por arquitectura CPU
+          src/arch/
+                  Cpu.h
+                  Cpu.cpp
+│   │   └── src/arch/x8ag/                        # Optimizaciones por arquitectura CPU
 │   │       ├── kernel_x86_sse2.cpp/.h ok✅
 │   │       ├── kernel_x86_avx.cpp/.h ok✅
 │   │       ├── kernel_x86_avx512.cpp/.h ok✅
 │   │       ├── kernel_x86_generic.cpp/.h ok✅
-│   │   └── CMakeLists.txt ok✅ 
+│   │   
 
 │   ├── src/patches/
-│   │   ├── CMakeLists.txt
+│   │ 
            program_epilogue_linux.inc
            program_epilogue_store.inc
            program_epilogue_win64.inc
@@ -165,8 +185,8 @@ zartrux-miner/
            randomx_reciprocal.inc
 
 ├── src/ia-modules/                         # Inteligencia Artificial para minería
-│   ├── CMakeLists.txt
-│   ├── ia-modules/ launcher/
+
+│ src/ia-modules/ launcher/
 │   │   └──-------------------- zartrux_launcher.py         # Lanza el sistema  IA
 │
 │   ├──src/ ia-modules/bridge/                         # Conexión y adaptadores IA ↔ minería
@@ -230,13 +250,13 @@ zartrux-miner/
 ├── src/security/
 │   ├── AESNonceEncryptor.cpp/.h        # Encriptación AES de nonces
 │   ├── ConfigSigner.cpp/.h             # Firmado digital de configuración
-│   └── CMakeLists.txt
+│  
 
 ├── tests/
 │   ├── unit/MinerCore_test.cpp         # Pruebas unitarias
 │   ├── integration/StratumClient_test.cpp # Pruebas de integración
 │   ├── performance/RandomX_benchmark.cpp # Benchmarks
-│   └── CMakeLists.txt
+
 
 ├── scripts/
 │   ├── build.sh                        # Compilación automática
