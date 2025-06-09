@@ -1,9 +1,9 @@
-
 #ifndef PORTABLE_BLAKE2_H
 #define PORTABLE_BLAKE2_H
 
 #include <stdint.h>
 #include <limits.h>
+#include <cassert> // Para static_assert
 
 #if defined(__cplusplus)
 extern "C" {
@@ -43,13 +43,10 @@ extern "C" {
 		uint8_t last_node;
 	} blake2b_state;
 
-	/* Ensure param structs have not been wrongly padded */
-	/* Poor man's static_assert */
-	enum {
-		blake2_size_check_0 = 1 / !!(CHAR_BIT == 8),
-		blake2_size_check_2 =
-		1 / !!(sizeof(blake2b_param) == sizeof(uint64_t) * CHAR_BIT)
-	};
+	/* --- CORRECCIÓN: Se reemplaza el truco de C por un static_assert de C++ moderno --- */
+	static_assert(CHAR_BIT == 8, "Error: CHAR_BIT debe ser 8.");
+	static_assert(sizeof(blake2b_param) == 64, "Error: el tamaño de blake2b_param es incorrecto.");
+    /* --- FIN DE LA CORRECCIÓN --- */
 
 	/* Streaming API */
     int rx_blake2b_init(blake2b_state *S, size_t outlen);

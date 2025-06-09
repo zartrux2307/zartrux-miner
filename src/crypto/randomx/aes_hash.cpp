@@ -5,12 +5,12 @@
 #include <array>
 
 #include "crypto/randomx/aes_hash.hpp"
-#include "base/tools/Chrono.h"
+#include "utils/Chrono.h"
 #include "crypto/randomx/randomx.h"
 #include "crypto/randomx/soft_aes.h"
 #include "crypto/randomx/instruction.hpp"
 #include "crypto/randomx/common.hpp"
-#include "crypto/rx/Profiler.h"
+#include "runtime/Profiler.h"
 
 #define AES_HASH_1R_STATE0 0xd7983aad, 0xcc82db47, 0x9fa856de, 0x92b52c0d
 #define AES_HASH_1R_STATE1 0xace78057, 0xf59e125a, 0x15c7b798, 0x338d996e
