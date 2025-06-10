@@ -9,7 +9,7 @@
 #include "crypto/randomx/common.hpp"
 #include "crypto/randomx/intrin_portable.h"
 #include "crypto/randomx/soft_aes.h"
-#include "crypto/rx/Profiler.h"
+#include "runtime/Profiler.h"
 
 randomx_vm::~randomx_vm() {
 

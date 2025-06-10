@@ -1,8 +1,6 @@
 
 
-#include <thread>
-#include <vector>
-#include <array>
+
 
 #include "crypto/randomx/aes_hash.hpp"
 #include "utils/Chrono.h"
@@ -11,6 +9,12 @@
 #include "crypto/randomx/instruction.hpp"
 #include "crypto/randomx/common.hpp"
 #include "runtime/Profiler.h"
+#include "crypto/randomx/intrin_portable.h"
+#include <thread>
+#include <vector>
+#include <array>
+#include <stdexcept>
+#include <string>
 
 #define AES_HASH_1R_STATE0 0xd7983aad, 0xcc82db47, 0x9fa856de, 0x92b52c0d
 #define AES_HASH_1R_STATE1 0xace78057, 0xf59e125a, 0x15c7b798, 0x338d996e

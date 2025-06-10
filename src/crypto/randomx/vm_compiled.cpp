@@ -3,6 +3,9 @@
 #include "crypto/randomx/vm_compiled.hpp"
 #include "crypto/randomx/common.hpp"
 #include "runtime/Profiler.h"
+#include "crypto/randomx/virtual_machine.hpp"
+#include "crypto/randomx/jit_compiler.hpp"
+#include "crypto/randomx/jit_compiler_x86_static.hpp
 
 namespace randomx {
 
