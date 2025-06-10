@@ -1,5 +1,11 @@
 #pragma once
 
+
+
+#include "crypto/randomx/randomx.h
+#include "core/threads/WorkerThread.h"
+#include "core/JobManager.h"
+#include "core/NonceValidator.h"
 #include <vector>
 #include <memory>
 #include <atomic>
@@ -8,10 +14,7 @@
 #include <optional>
 #include <string>
 #include <chrono>
-#include "crypto/randomx/randomx.h
-#include "core/threads/WorkerThread.h"
-#include "core/JobManager.h"
-#include "core/NonceValidator.h"
+
 
 struct CheckpointState {
     uint64_t lastBlockHeight = 0;

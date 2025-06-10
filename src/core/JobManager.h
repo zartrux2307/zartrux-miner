@@ -1,6 +1,13 @@
 #ifndef JOB_MANAGER_H
 #define JOB_MANAGER_H
 
+
+
+#include "SmartCache.h"
+#include "NonceValidator.h"
+#include "ia/IAReceiver.h"
+#include "runtime/Profiler.h"
+#include "utils/StatusExporter.h"
 #include <vector>
 #include <deque>
 #include <mutex>
@@ -10,16 +17,8 @@
 #include <string>
 #include <thread>
 #include <fstream>
-#include "SmartCache.h"
-#include "NonceValidator.h"
-#include "ia/IAReceiver.h"
-#include "runtime/Profiler.h"
 
-// --- CORRECCIÓN ---
-// Se ha eliminado la inclusión de 'PrometheusExporter.h' que no existe en el proyecto.
-// Tu proyecto ya tiene 'StatusExporter.h' para esta funcionalidad.
-#include "utils/StatusExporter.h"
-// --- FIN DE LA CORRECCIÓN ---
+
 
 
 // Tipo para nonces con metadata

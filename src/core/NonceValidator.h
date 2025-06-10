@@ -1,5 +1,7 @@
 #pragma once
 
+
+#include "crypto/randomx/randomx.h"
 #include <array>
 #include <cstdint>
 #include <vector>
@@ -9,7 +11,9 @@
 #include <thread>
 #include <future>
 #include <mutex>
-#include "crypto/randomx/randomx.h"
+
+
+
 class NonceValidator {
 public:
     static constexpr size_t HASH_SIZE = 32;
