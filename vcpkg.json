@@ -1,0 +1,16 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "zartrux-miner",
+  "version-string": "1.0.0",
+  "description": "Professional CPU mining solution with AI-driven nonce prediction for Monero (XMR).",
+  "dependencies": [
+    "boost-asio",
+    "cpr",
+    "fmt",
+    "hwloc",
+    "nlohmann-json",
+    "openssl",
+    "pybind11",
+    "yaml-cpp" 
+  ]
+}
