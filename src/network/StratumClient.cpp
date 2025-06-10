@@ -1,112 +1,92 @@
-#include "SmartCache.h"
-#include "SmartCache.h"  // Error C1083
-#include <algorithm>
-#include <stdexcept>
-#include <iostream>
-#include <cstring>
-#include <span>
-#include <memory>
-namespace zartrux::memory {
+#include "StratumClient.h"
+#include "utils/Logger.h"
 
-SmartCache::SmartCache(size_t windowSize) {
-    if (windowSize == 0 || windowSize > MaxCacheSize) {
-        throw std::invalid_argument("❌ SmartCache window size must be > 0 and <= MaxCacheSize.");
-    }
-    m_window.resize(windowSize);
+// Usamos el espacio de nombres para Boost.Asio
+namespace asio = boost::asio;
+using tcp = asio::ip::tcp;
+using namespace std::placeholders;
+
+StratumClient::StratumClient(asio::io_context& io_context)
+    : m_io_context(io_context), m_socket(io_context), m_resolver(io_context) {
+    // El constructor ahora es más simple
 }
 
-void SmartCache::setMetricCallback(std::function<void(size_t, size_t)> cb) {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    metric_callback = std::move(cb);
+StratumClient::~StratumClient() {
+    disconnect();
 }
 
-size_t SmartCache::prefetch(std::span<const uint8_t> data) noexcept {
-    if (data.empty()) {
-        std::cerr << "⚠️ Warning: Empty data passed to prefetch." << std::endl;
-        return 0;
+void StratumClient::connectToPool(const std::string& host, uint16_t port) {
+    m_host = host;
+    m_port = std::to_string(port);
+
+    // Iniciar la resolución de DNS de forma asíncrona
+    m_resolver.async_resolve(m_host, m_port,
+        std::bind(&StratumClient::handle_resolve, this, _1, _2));
+}
+
+void StratumClient::disconnect() {
+    boost::system::error_code ec;
+    m_socket.shutdown(tcp::socket::shutdown_both, ec);
+    m_socket.close(ec);
+    if (onDisconnected) {
+        onDisconnected();
     }
+}
 
-    std::lock_guard<std::mutex> lock(m_mutex);
-
-    size_t copySize = std::min(data.size(), m_window.size());
-
-    evict_old_entries(copySize);
-
-    std::copy(data.begin(), data.begin() + copySize, m_window.begin());
-
-    if (copySize == data.size()) {
-        m_hit_count.fetch_add(1, std::memory_order_relaxed);
+void StratumClient::handle_resolve(const boost::system::error_code& ec,
+                                  const tcp::resolver::results_type& endpoints) {
+    if (!ec) {
+        // Intentar conectar con las direcciones encontradas
+        asio::async_connect(m_socket, endpoints,
+            std::bind(&StratumClient::handle_connect, this, _1, _2));
     } else {
-        m_miss_count.fetch_add(1, std::memory_order_relaxed);
+        if (onError) {
+            onError("Error de resolución DNS: " + ec.message());
+        }
     }
+}
 
-    // Hook para monitorización (si está configurado)
-    if (metric_callback && (m_hit_count + m_miss_count) % 100 == 0) {
-        metric_callback(m_hit_count, m_miss_count);
+void StratumClient::handle_connect(const boost::system::error_code& ec,
+                                 const tcp::endpoint& endpoint) {
+    if (!ec) {
+        if (onConnected) {
+            onConnected();
+        }
+        // Empezar a leer datos del pool
+        read_response();
+    } else {
+        if (onError) {
+            onError("Error de conexión: " + ec.message());
+        }
     }
-
-    return copySize;
 }
 
-void SmartCache::evict_old_entries(size_t incomingSize) {
-    if (incomingSize >= m_window.size()) {
-        std::fill(m_window.begin(), m_window.end(), 0);
-        return;
+void StratumClient::read_response() {
+    // Leer hasta encontrar un salto de línea (típico en Stratum)
+    asio::async_read_until(m_socket, m_buffer, '\n',
+        std::bind(&StratumClient::handle_read, this, _1, _2));
+}
+
+void StratumClient::handle_read(const boost::system::error_code& ec, std::size_t bytes_transferred) {
+    if (!ec) {
+        // Procesar los datos recibidos
+        std::istream response_stream(&m_buffer);
+        std::string response_line;
+        std::getline(response_stream, response_line);
+
+        // Aquí iría la lógica para procesar el JSON de la respuesta del pool
+        Logger::debug("StratumClient", "Recibido: %s", response_line.c_str());
+
+        // Continuar leyendo
+        read_response();
+    } else if (ec != asio::error::eof) {
+        if (onError) {
+            onError("Error de lectura: " + ec.message());
+        }
+    } else {
+        // Se cerró la conexión
+        if (onDisconnected) {
+            onDisconnected();
+        }
     }
-
-    std::rotate(m_window.begin(), m_window.begin() + incomingSize, m_window.end());
-    std::fill(m_window.end() - incomingSize, m_window.end(), 0);
 }
-
-std::deque<uint8_t> SmartCache::get_data() const {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    return m_window;
-}
-
-size_t SmartCache::size() const noexcept {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    return m_window.size();
-}
-
-void SmartCache::resize(size_t newSize) {
-    if (newSize == 0 || newSize > MaxCacheSize) {
-        throw std::invalid_argument("❌ New SmartCache size must be > 0 and <= MaxCacheSize.");
-    }
-
-    std::lock_guard<std::mutex> lock(m_mutex);
-    m_window.resize(newSize);
-}
-
-void SmartCache::clear() {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    std::fill(m_window.begin(), m_window.end(), 0);
-}
-
-size_t SmartCache::get_hit_count() const noexcept {
-    return m_hit_count.load(std::memory_order_acquire);
-}
-
-size_t SmartCache::get_miss_count() const noexcept {
-    return m_miss_count.load(std::memory_order_acquire);
-}
-
-void SmartCache::reset_counters() noexcept {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    m_hit_count.store(0, std::memory_order_release);
-    m_miss_count.store(0, std::memory_order_release);
-}
-
-void SmartCache::debug_print() const noexcept {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    std::cout << "[SmartCache Debug]" << std::endl;
-    std::cout << "  Size:       " << m_window.size() << std::endl;
-    std::cout << "  Hits:       " << m_hit_count.load() << std::endl;
-    std::cout << "  Misses:     " << m_miss_count.load() << std::endl;
-}
-
-std::vector<uint8_t> SmartCache::snapshot() const {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    return std::vector<uint8_t>(m_window.begin(), m_window.end());
-}
-
-} // namespace zartrux::memory
