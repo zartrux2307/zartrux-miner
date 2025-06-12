@@ -1,11 +1,5 @@
 #pragma once
 
-
-
-#include "crypto/randomx/randomx.h
-#include "core/threads/WorkerThread.h"
-#include "core/JobManager.h"
-#include "core/NonceValidator.h"
 #include <vector>
 #include <memory>
 #include <atomic>
@@ -15,6 +9,10 @@
 #include <string>
 #include <chrono>
 
+#include "crypto/randomx/randomx.h"
+#include "core/threads/WorkerThread.h"
+#include "core/JobManager.h"
+#include "core/NonceValidator.h"
 
 struct CheckpointState {
     uint64_t lastBlockHeight = 0;
@@ -46,8 +44,8 @@ public:
     ~MinerCore();
 
     bool initialize(const MiningConfig& config);
-    void startMining();
-    void stopMining();
+    void start();
+    void stop();
 
     void setNumThreads(unsigned count);
     unsigned getNumThreads() const { return m_numThreads.load(); }
@@ -68,7 +66,6 @@ public:
     void saveCheckpoint() const;
     bool loadCheckpoint();
 
-    // Nuevos: integración hooks y consola web/backend
     void broadcastEvent(const std::string& eventType, const std::string& payload) const;
 
 private:
@@ -86,10 +83,9 @@ private:
     std::atomic<long> m_acceptedShares;
 
     randomx_cache* m_rxCache = nullptr;
-    std::vector<randomx_vm*> m_workerVMs;
-    std::vector<std::unique_ptr<WorkerThread>> m_workers;
-    mutable std::mutex m_workerMutex;
+    randomx_dataset* m_rxDataset = nullptr;
 
-    // Checkpoint/estado persistente
-    CheckpointState m_checkpoint;
+    std::vector<std::unique_ptr<WorkerThread>> m_workers;
+    std::vector<std::thread> m_threads;
+    std::mutex m_workerMutex;
 };

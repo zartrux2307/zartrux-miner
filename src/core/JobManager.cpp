@@ -1,4 +1,4 @@
-#include "JobManager.h"
+#include "core/JobManager.h"
 #include "MiningModeManager.h"
 #include "utils/Logger.h"
 #include <cpr/cpr.h>
@@ -7,7 +7,7 @@
 #include <cmath>
 #include <fmt/core.h>
 #include <csignal>
-#include <sched.h>
+#include <windows.h>
 
 using json = nlohmann::json;
 
@@ -38,6 +38,26 @@ JobManager::JobManager()
 
 JobManager::~JobManager() {
     shutdown();
+}
+void JobManager::setNewJob(const MiningJob& newJob) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_currentJob = newJob;
+    m_job_available = true;
+    m_cv.notify_all(); // Notificar a todos los hilos que hay un nuevo trabajo
+}
+
+const std::vector<uint8_t>& JobManager::getCurrentBlob() const {
+    // NOTA: Devolver directamente el blob. Se asume que el acceso es seguro
+    // o gestionado por el ciclo de vida del JobManager.
+    return m_currentJob.blob;
+}
+
+const std::array<uint8_t, 32>& JobManager::getCurrentTarget() const {
+    return m_currentJob.targetBin;
+}
+
+bool JobManager::hasActiveJob() const {
+    return m_job_available.load();
 }
 
 // ---- Apagado ordenado (para pruebas y backend) ----
@@ -95,6 +115,15 @@ void JobManager::processNonces(const std::vector<uint64_t>& nonces, const std::v
     for (size_t i = 0; i < nonces.size(); ++i) {
         m_processedCount++;
         bool isValid = results[i];
+
+
+
+
+
+
+
+
+        
         uint64_t nonce = nonces[i];
         if (isValid) {
             validCount++;

@@ -1,13 +1,5 @@
-#ifndef JOB_MANAGER_H
-#define JOB_MANAGER_H
+#pragma once
 
-
-
-#include "SmartCache.h"
-#include "NonceValidator.h"
-#include "ia/IAReceiver.h"
-#include "runtime/Profiler.h"
-#include "utils/StatusExporter.h"
 #include <vector>
 #include <deque>
 #include <mutex>
@@ -17,92 +9,95 @@
 #include <string>
 #include <thread>
 #include <fstream>
+#include <array>
 
+#include "core/SmartCache.h"
+#include "core/NonceValidator.h"
+#include "core/ia/IAReceiver.h"
+#include "runtime/Profiler.h"
+#include "utils/StatusExporter.h"
 
+// Estructura para almacenar la información de un trabajo de minería.
+struct MiningJob {
+    std::string id;
+    std::string blob;
+    std::string target;
+    std::array<uint8_t, 32> targetBin; // Target convertido a binario para comparaciones rápidas
+    uint64_t height = 0;
+};
 
-
-// Tipo para nonces con metadata
+// Estructura para los nonces, anotados con la confianza de la IA.
 struct AnnotatedNonce {
     uint64_t value;
-    float confidence = 1.0f;  // Confianza IA (1.0 = generado por CPU)
+    float confidence = 1.0f; // 1.0 para nonces de CPU, < 1.0 para nonces de IA
     uint64_t timestamp;
 };
 
+/**
+ * @class JobManager
+ * @brief Orquesta la distribución de trabajo a los hilos mineros,
+ * gestionando las colas de nonces (CPU vs IA) y los resultados.
+ */
 class JobManager {
 public:
     static JobManager& getInstance();
 
-    // Gestión de contribución IA
+    JobManager(const JobManager&) = delete;
+    JobManager& operator=(const JobManager&) = delete;
+
+    // --- Interfaz Pública ---
+
+    // Configuración
     void setAIContribution(float ratio);
     float getAIContribution() const;
 
-    // Gestión de endpoints IA
-    void setIAEndpoint(const std::string& endpoint);
-    std::string getIAEndpoint() const;
-
-    // Obtención de trabajo
+    // Gestión de Trabajos
+    void setNewJob(const MiningJob& newJob);
     std::vector<AnnotatedNonce> getWorkBatch(size_t workerId, size_t maxNonces);
-
-    // Inyección de nonces IA
+    
+    // Inyección y Procesamiento de Nonces
     void injectIANonces(const std::vector<uint64_t>& nonces);
-
-    // Validación y reporte
-    void processNonces(const std::vector<uint64_t>& nonces, const std::vector<bool>& results);
     void submitValidNonce(uint64_t nonce, const std::string& hash);
 
-    // Checkpoints y estado
-    void saveCheckpoint();
-    void loadCheckpoint();
+    // Obtención de datos del trabajo actual (para los hilos)
+    std::vector<uint8_t> getCurrentBlob() const;
+    const std::array<uint8_t, 32>& getCurrentTarget() const;
+    bool hasActiveJob() const;
+
+    // Sincronización eficiente con los hilos
+    bool isWorkQueueEmpty();
+    std::mutex& getMutex();
+    std::condition_variable& getConditionVariable();
+    
     void shutdown();
 
 private:
     JobManager();
     ~JobManager();
 
-    // --- Métodos internos ---
-
-    // ---- Gestión de Colas ----
+    // --- Métodos Internos ---
     void fetchIANoncesBackground();
-    void balanceQueues(size_t num_threads);
+    void processValidationResults(const std::vector<uint64_t>& nonces, const std::vector<bool>& results);
     std::vector<AnnotatedNonce> generateCpuNonces(size_t count);
 
-    // ---- Lógica de Distribución ----
-    void distributeToBatch(size_t workerId,
-                         std::vector<AnnotatedNonce>& batch,
-                         size_t maxNonces);
-
-    // ---- Flood & Saturación ----
-    bool floodControlActive(size_t queueCpu, size_t queueIa) const;
-
     // Miembros
-    std::atomic<float> m_aiContribution{0.5f};
     mutable std::mutex m_mutex;
     std::condition_variable m_cv;
+    std::atomic<bool> m_shutdown{false};
 
-    // Colas separadas para CPU e IA (deque: lock-free pop/push frontal/trasero)
+    MiningJob m_currentJob;
+    std::atomic<bool> m_job_available{false};
+    
     std::deque<AnnotatedNonce> m_cpuQueue;
     std::deque<AnnotatedNonce> m_iaQueue;
 
-    // Contadores
+    std::atomic<float> m_aiContribution{0.5f};
+    
+    // Contadores y métricas
     std::atomic<size_t> m_validNonces{0};
-    std::atomic<size_t> m_iaContributed{0};
     std::atomic<size_t> m_processedCount{0};
 
-    // Rotación de logs
-    std::atomic<size_t> m_validNoncesSinceLog{0};
-
-    // Gestión IA
-    std::string m_iaEndpoint;
+    // Hilo para la comunicación con la IA
     std::thread m_iaFetchThread;
-    std::atomic<bool> m_shutdown{false};
-
-    // Checkpoint
-    std::string m_checkpointFile = "logs/jobmanager_checkpoint.dat";
-
-    // Constantes
-    static constexpr size_t MAX_QUEUE_SIZE = 250000;    // alta producción
-    static constexpr size_t LOG_ROTATE_EVERY = 100;      // nonces
-    const std::chrono::milliseconds IA_FETCH_INTERVAL{2000};
+    static constexpr auto IA_FETCH_INTERVAL = std::chrono::seconds(2);
 };
-
-#endif // JOB_MANAGER_H

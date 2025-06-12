@@ -1,7 +1,5 @@
 #pragma once
 
-
-#include "crypto/randomx/randomx.h"
 #include <array>
 #include <cstdint>
 #include <vector>
@@ -12,7 +10,7 @@
 #include <future>
 #include <mutex>
 
-
+#include "crypto/randomx/randomx.h"
 
 class NonceValidator {
 public:
@@ -59,9 +57,8 @@ public:
                                          std::span<const uint8_t> jobBlob,
                                          const ValidatorConfig& config = ValidatorConfig());
 
-    // VALIDACIÓN EN PARALELO: Producción, super-eficiente
     static std::vector<bool> validateBatchParallel(
-        randomx_vm** vms,  // Array de VMs, uno por hilo
+        randomx_vm** vms,
         size_t num_vms,
         const std::vector<uint64_t>& nonces,
         const hash_t& target,
@@ -69,8 +66,5 @@ public:
         const ValidatorConfig& config = ValidatorConfig());
 
 private:
-    static void insertNonce(std::vector<uint8_t>& blob, uint64_t nonce,
-                           size_t position, size_t size, Endianness endian);
-
-    ValidatorConfig m_config;
+    static void insertNonce(std::vector<uint8_t>& blob, uint64_t nonce, const ValidatorConfig& config);
 };

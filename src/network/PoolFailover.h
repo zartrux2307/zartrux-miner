@@ -4,46 +4,38 @@
 #include <string>
 #include <memory>
 #include <functional>
-#include <cstdint>
+#include <thread>
+#include <boost/asio.hpp>
+#include "core/JobManager.h"
 
-// --- CORRECCIÓN: Se usa una declaración adelantada para evitar inclusiones circulares ---
 class StratumClient;
 
-/**
- * @class PoolFailover
- * @brief Gestiona una lista de pools y cambia automáticamente al siguiente
- * en caso de fallo de conexión (failover).
- */
 class PoolFailover {
 public:
-    struct PoolConfig {
+    struct PoolInfo {
         std::string host;
         uint16_t port;
-        int retries{0}; // Reintentos actuales para este pool
+        std::string user;
+        std::string pass;
     };
 
-    // --- CORRECCIÓN: Se reemplazan signals de Qt por callbacks de C++ estándar ---
-    std::function<void(const std::string& host, uint16_t port)> onFailoverOccurred;
-    std::function<void(const std::string& error)> onConnectionError;
-
-    explicit PoolFailover();
+    explicit PoolFailover(asio::io_context& io_context, std::vector<PoolInfo> pools);
     ~PoolFailover();
 
-    void setPools(const std::vector<PoolConfig>& pools);
     void start();
     void stop();
 
+    std::function<void(const MiningJob&)> onNewJob;
+
 private:
     void tryNextPool();
-    void onConnected();
-    void onError(const std::string& error);
-    void onConnectionLost();
-    void scheduleRetry();
+    void onClientError(const std::string& error);
 
-    std::vector<PoolConfig> m_pools;
+    asio::io_context& m_io_context;
+    std::vector<PoolInfo> m_pools;
     size_t m_currentIndex = 0;
-    int m_maxRetriesPerPool = 3;
+    std::shared_ptr<StratumClient> m_client;
     
-    // Se usa un puntero único para gestionar el ciclo de vida del cliente Stratum
-    std::unique_ptr<StratumClient> m_client;
+    asio::steady_timer m_retryTimer;
+    std::atomic<bool> m_is_stopped{false};
 };
