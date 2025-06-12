@@ -8,7 +8,6 @@ file(GLOB_RECURSE ALL_SOURCES
     "utils/*.cpp"
     "security/*.cpp"
     "arch/*.cpp" "arch/x8ag/*.cpp"
-    "crypto/rx/*.cpp"
     "crypto/randomx/*.cpp"
     "crypto/randomx/*.c"
     "crypto/randomx/blake2/*.c"
@@ -17,15 +16,19 @@ file(GLOB_RECURSE ALL_SOURCES
 
 set(ASM_SOURCES)
 if(MSVC)
-    list(APPEND ASM_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/crypto/randomx/jit_compiler_x86_static.asm")
+    list(APPEND ASM_SOURCES 
+        "${CMAKE_CURRENT_SOURCE_DIR}/crypto/randomx/jit_compiler_x86_static.asm"
+    )
 endif()
 
 # --- LIBRERÍA C++ PURA ---
-# Esta librería ya no tiene ninguna relación con Python.
 add_library(zartrux_libs STATIC
     ${ALL_SOURCES}
     ${ASM_SOURCES}
 )
+
+
+
 target_include_directories(zartrux_libs PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "crypto/argon2/include"
