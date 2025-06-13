@@ -1,0 +1,1242 @@
+Windows PowerShell
+Copyright (C) Microsoft Corporation. Todos los derechos reservados.
+
+Prueba la nueva tecnología PowerShell multiplataforma https://aka.ms/pscore6
+
+PS C:\Windows\system32> cd C:\zartrux-miner
+PS C:\zartrux-miner> Remove-Item -Recurse -Force build
+PS C:\zartrux-miner> mkdir build
+
+
+    Directorio: C:\zartrux-miner
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        11/06/2025     23:32                build
+
+
+PS C:\zartrux-miner> cd build
+PS C:\zartrux-miner\build> cmake .. -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -G "Visual Studio 17 2022"
+-- Running vcpkg install
+Detecting compiler hash for triplet x64-windows...
+Compiler found: C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe
+The following packages will be built and installed:
+  * boost-algorithm:x64-windows@1.88.0
+  * boost-align:x64-windows@1.88.0
+  * boost-array:x64-windows@1.88.0
+    boost-asio:x64-windows@1.88.0
+  * boost-assert:x64-windows@1.88.0
+  * boost-bind:x64-windows@1.88.0
+  * boost-cmake:x64-windows@1.88.0
+  * boost-concept-check:x64-windows@1.88.0
+  * boost-config:x64-windows@1.88.0
+  * boost-container:x64-windows@1.88.0
+  * boost-container-hash:x64-windows@1.88.0
+  * boost-context:x64-windows@1.88.0
+  * boost-conversion:x64-windows@1.88.0
+  * boost-core:x64-windows@1.88.0
+  * boost-date-time:x64-windows@1.88.0
+  * boost-describe:x64-windows@1.88.0
+  * boost-detail:x64-windows@1.88.0
+  * boost-exception:x64-windows@1.88.0
+  * boost-function:x64-windows@1.88.0
+  * boost-function-types:x64-windows@1.88.0
+  * boost-functional:x64-windows@1.88.0
+  * boost-fusion:x64-windows@1.88.0
+  * boost-headers:x64-windows@1.88.0
+  * boost-integer:x64-windows@1.88.0
+  * boost-intrusive:x64-windows@1.88.0
+  * boost-io:x64-windows@1.88.0
+  * boost-iterator:x64-windows@1.88.0
+  * boost-lexical-cast:x64-windows@1.88.0
+  * boost-move:x64-windows@1.88.0
+  * boost-mp11:x64-windows@1.88.0
+  * boost-mpl:x64-windows@1.88.0
+  * boost-numeric-conversion:x64-windows@1.88.0
+  * boost-optional:x64-windows@1.88.0
+  * boost-pool:x64-windows@1.88.0
+  * boost-predef:x64-windows@1.88.0
+  * boost-preprocessor:x64-windows@1.88.0
+  * boost-range:x64-windows@1.88.0
+  * boost-regex:x64-windows@1.88.0
+  * boost-smart-ptr:x64-windows@1.88.0
+  * boost-static-assert:x64-windows@1.88.0
+  * boost-system:x64-windows@1.88.0
+  * boost-throw-exception:x64-windows@1.88.0
+  * boost-tokenizer:x64-windows@1.88.0
+  * boost-tuple:x64-windows@1.88.0
+  * boost-type-traits:x64-windows@1.88.0
+  * boost-typeof:x64-windows@1.88.0
+  * boost-uninstall:x64-windows@1.88.0
+  * boost-unordered:x64-windows@1.88.0
+  * boost-utility:x64-windows@1.88.0
+  * boost-variant2:x64-windows@1.88.0
+  * boost-winapi:x64-windows@1.88.0
+  * bzip2[core,tool]:x64-windows@1.0.8#6
+    cpr[core,ssl]:x64-windows@1.11.2
+  * curl[core,non-http,schannel,ssl,sspi]:x64-windows@8.13.0#1
+  * expat:x64-windows@2.7.1
+    fmt:x64-windows@11.0.2#1
+    hwloc:x64-windows@2.11.2
+  * libffi:x64-windows@3.4.8
+  * liblzma:x64-windows@5.8.1
+    nlohmann-json:x64-windows@3.12.0
+    openssl:x64-windows@3.5.0#1
+  * pkgconf:x64-windows@2.4.3#1
+    pybind11:x64-windows@2.13.6
+  * python3[core,extensions]:x64-windows@3.12.9
+  * sqlite3[core,json1]:x64-windows@3.49.2
+  * vcpkg-boost:x64-windows@2025-03-29
+  * vcpkg-cmake:x64-windows@2024-04-23
+  * vcpkg-cmake-config:x64-windows@2024-05-23
+  * vcpkg-cmake-get-vars:x64-windows@2024-09-22
+  * vcpkg-get-python:x64-windows@2025-02-09
+  * vcpkg-msbuild:x64-windows@2023-08-08
+  * vcpkg-pkgconfig-get-modules:x64-windows@2024-04-03
+  * vcpkg-tool-meson:x64-windows@1.7.2
+    yaml-cpp:x64-windows@0.8.0#3
+  * zlib:x64-windows@1.3.1
+Additional packages (*) will be modified to complete this operation.
+Restored 75 package(s) from C:\Users\VORPC\AppData\Local\vcpkg\archives in 2.6 min. Use --debug to see more details.
+Installing 1/75 vcpkg-cmake-config:x64-windows@2024-05-23...
+Elapsed time to handle vcpkg-cmake-config:x64-windows: 9.42 ms
+vcpkg-cmake-config:x64-windows package ABI: a6bbbf37c4a838266139abf2b8c3d1e24aeddbf61eecad99c783a970cf807611
+Installing 2/75 vcpkg-cmake:x64-windows@2024-04-23...
+Elapsed time to handle vcpkg-cmake:x64-windows: 19 ms
+vcpkg-cmake:x64-windows package ABI: 377937e02d231e8e62f093ba0edd7848d535674283453168a97cf3a2c90b6158
+Installing 3/75 vcpkg-boost:x64-windows@2025-03-29...
+Elapsed time to handle vcpkg-boost:x64-windows: 21.1 ms
+vcpkg-boost:x64-windows package ABI: f641037f1ab8db8854b9f6b85168cfb2b035d4e9293a3ea28a97348ca8308f82
+Installing 4/75 boost-uninstall:x64-windows@1.88.0...
+Elapsed time to handle boost-uninstall:x64-windows: 18.6 ms
+boost-uninstall:x64-windows package ABI: 231ec0b3fb0c4ddc682efe83a13f06451d982084fdb7500286d15bd899b75733
+Installing 5/75 boost-cmake:x64-windows@1.88.0...
+Elapsed time to handle boost-cmake:x64-windows: 29.2 ms
+boost-cmake:x64-windows package ABI: db1c6d5b5fb6614d25fd24915531de7eba647bcb28f976e6c85b6879cd579d42
+Installing 6/75 boost-headers:x64-windows@1.88.0...
+Elapsed time to handle boost-headers:x64-windows: 21.5 ms
+boost-headers:x64-windows package ABI: e59d50a497e2b30160823966d0569f76b61f06c7a2fabb81c767d00c73777c6f
+Installing 7/75 boost-config:x64-windows@1.88.0...
+Elapsed time to handle boost-config:x64-windows: 128 ms
+boost-config:x64-windows package ABI: 67257a49e40ef982997e7054f3997dfd70456e7bfae94b4631bebc8e8f6ba69f
+Installing 8/75 boost-assert:x64-windows@1.88.0...
+Elapsed time to handle boost-assert:x64-windows: 25.6 ms
+boost-assert:x64-windows package ABI: 9382f69e794a56a29e0facf98747b894e3f3fd423216ada3df6732cc58444de8
+Installing 9/75 boost-throw-exception:x64-windows@1.88.0...
+Elapsed time to handle boost-throw-exception:x64-windows: 22.3 ms
+boost-throw-exception:x64-windows package ABI: 0ccb01e0b827de9ebf6539807f867122ca59f218321a8749abd3a5b244cab088
+Installing 10/75 boost-predef:x64-windows@1.88.0...
+Elapsed time to handle boost-predef:x64-windows: 92.2 ms
+boost-predef:x64-windows package ABI: f3feb9bc58fdb02fbf50ebb6f0539801058a8d596e44879e2b11da89f8038765
+Installing 11/75 boost-winapi:x64-windows@1.88.0...
+Elapsed time to handle boost-winapi:x64-windows: 71.1 ms
+boost-winapi:x64-windows package ABI: 36aebbaaab85d64065902ae429f65a7b969a7d0465c99d011f7eb78a1f2cdac1
+Installing 12/75 boost-mp11:x64-windows@1.88.0...
+Elapsed time to handle boost-mp11:x64-windows: 39.1 ms
+boost-mp11:x64-windows package ABI: 85ea41511b0946bcf00452aab622dbaaf9a8b74386675838ce05a11369dc5820
+Installing 13/75 boost-variant2:x64-windows@1.88.0...
+Elapsed time to handle boost-variant2:x64-windows: 25.3 ms
+boost-variant2:x64-windows package ABI: 86c9e5f9669baa4fdc1c6953696868bfc1c77af264d35344462b63a00c8f9259
+Installing 14/75 boost-system:x64-windows@1.88.0...
+Elapsed time to handle boost-system:x64-windows: 45.2 ms
+boost-system:x64-windows package ABI: 43b6f997c8f792fcd9fba58dfe4c6afecda6e5d50dde1da5bc405f3d0b08aa8d
+Installing 15/75 boost-static-assert:x64-windows@1.88.0...
+Elapsed time to handle boost-static-assert:x64-windows: 26.9 ms
+boost-static-assert:x64-windows package ABI: a0df7cfaa8fc386984ec1eceefcfecffe4213b6a539c4ea1d83724e740194438
+Installing 16/75 boost-type-traits:x64-windows@1.88.0...
+Elapsed time to handle boost-type-traits:x64-windows: 96.9 ms
+boost-type-traits:x64-windows package ABI: c0fa01a7ae1bb56e85f4e0dc99aef5a3dc189dfe7a33cf2ad7ca41afcc9cb940
+Installing 17/75 boost-preprocessor:x64-windows@1.88.0...
+Elapsed time to handle boost-preprocessor:x64-windows: 206 ms
+boost-preprocessor:x64-windows package ABI: f0a88010c5dfaaa4afc6fc6fc5edc5d3fb8dbbf9eb61f8bb1ad4ebdf51db925d
+Installing 18/75 boost-io:x64-windows@1.88.0...
+Elapsed time to handle boost-io:x64-windows: 31.3 ms
+boost-io:x64-windows package ABI: 3b4b83f707963b329a3b321eaab399e16df38a39b36c29e52e0dcf9467c60471
+Installing 19/75 boost-core:x64-windows@1.88.0...
+Elapsed time to handle boost-core:x64-windows: 53.1 ms
+boost-core:x64-windows package ABI: a9b8686fea4e82227cb25af30101681e993cb3f30ba90e99e729f1c616a9d9b8
+Installing 20/75 boost-utility:x64-windows@1.88.0...
+Elapsed time to handle boost-utility:x64-windows: 40.8 ms
+boost-utility:x64-windows package ABI: 83c05d725c49248c5e8746861070dd2904cf40203024e76f516b3b7c93590d91
+Installing 21/75 boost-optional:x64-windows@1.88.0...
+Elapsed time to handle boost-optional:x64-windows: 35.4 ms
+boost-optional:x64-windows package ABI: 4c4d5203e368246e8f14b12d63cda04017f577d58b878bf219043ed1145dbbad
+Installing 22/75 boost-mpl:x64-windows@1.88.0...
+Elapsed time to handle boost-mpl:x64-windows: 443 ms
+boost-mpl:x64-windows package ABI: 588da28dcfa3bed9b538bbc5db989f7f76d7531f089f4135cb64a4639332a6ac
+Installing 23/75 boost-typeof:x64-windows@1.88.0...
+Elapsed time to handle boost-typeof:x64-windows: 39.7 ms
+boost-typeof:x64-windows package ABI: 19ca06d8662743a48d4def39676f6e3b2a8d8aaa8d0bbb0971310662b6d271cf
+Installing 24/75 boost-tuple:x64-windows@1.88.0...
+Elapsed time to handle boost-tuple:x64-windows: 32.6 ms
+boost-tuple:x64-windows package ABI: d7d391643e1f9577571dc7e36f0bf1fd4cea8627a4ac282ab0d905dc20735b93
+Installing 25/75 boost-detail:x64-windows@1.88.0...
+Elapsed time to handle boost-detail:x64-windows: 38.5 ms
+boost-detail:x64-windows package ABI: f8f21ec13aa5eb1606bbd1d2c09cb0a479d60c670229c9695a77ba2547ee39f3
+Installing 26/75 boost-function-types:x64-windows@1.88.0...
+Elapsed time to handle boost-function-types:x64-windows: 76.1 ms
+boost-function-types:x64-windows package ABI: 4eb6a5c74b81c4b73c9bf33a4e3d97ab8600fa67c3b72d1f09a09a406fb5d784
+Installing 27/75 boost-bind:x64-windows@1.88.0...
+Elapsed time to handle boost-bind:x64-windows: 45.5 ms
+boost-bind:x64-windows package ABI: d7fbd4efcee232c6fdc198b5f5f12b980de012e4a204d4c37c6190d2860f7709
+Installing 28/75 boost-function:x64-windows@1.88.0...
+Elapsed time to handle boost-function:x64-windows: 35 ms
+boost-function:x64-windows package ABI: aa0b914a2add72e00158e7e21567f0eec847904fc5e8fd4380398aa9cc43f26c
+Installing 29/75 boost-functional:x64-windows@1.88.0...
+Elapsed time to handle boost-functional:x64-windows: 48.5 ms
+boost-functional:x64-windows package ABI: 7c521ae58e0539db357a9015e845f77b3b042b8667334ffd29df69e79a9f72a0
+Installing 30/75 boost-describe:x64-windows@1.88.0...
+Elapsed time to handle boost-describe:x64-windows: 74.9 ms
+boost-describe:x64-windows package ABI: 6295f774fb34fcd718694e16eacc7e7b60ec12893ba9ef47d4330f0f75cb4f72
+Installing 31/75 boost-container-hash:x64-windows@1.88.0...
+Elapsed time to handle boost-container-hash:x64-windows: 80.3 ms
+boost-container-hash:x64-windows package ABI: 218c944b17dea3c5091788045c7e6bfc9c61bd8a876d3d1712a9da5272e01b16
+Installing 32/75 boost-fusion:x64-windows@1.88.0...
+Elapsed time to handle boost-fusion:x64-windows: 740 ms
+boost-fusion:x64-windows package ABI: f490f4292fb1db10f604f9816af2b57f0c3073704ef0318452c16fb13efe0a34
+Installing 33/75 boost-concept-check:x64-windows@1.88.0...
+Elapsed time to handle boost-concept-check:x64-windows: 51.4 ms
+boost-concept-check:x64-windows package ABI: e918c41b23bf9b1741a6924079023f73fa83478656651255f2bf33fe84456b62
+Installing 34/75 boost-iterator:x64-windows@1.88.0...
+Elapsed time to handle boost-iterator:x64-windows: 52.4 ms
+boost-iterator:x64-windows package ABI: eb218ab41a991ff5f5d76856c4d48f7546ce9bb2b2d5b770216dc7c2d88d5fb6
+Installing 35/75 boost-tokenizer:x64-windows@1.88.0...
+Elapsed time to handle boost-tokenizer:x64-windows: 35.1 ms
+boost-tokenizer:x64-windows package ABI: 27bbf4ef2a8301801064620ffeb310cad47c1e882938d2471f2cf9710d526372
+Installing 36/75 boost-smart-ptr:x64-windows@1.88.0...
+Elapsed time to handle boost-smart-ptr:x64-windows: 73.5 ms
+boost-smart-ptr:x64-windows package ABI: 8d91da6b0ff67f15a1c5b91f94d03677b145697dad842724dead287b99402c07
+Installing 37/75 boost-integer:x64-windows@1.88.0...
+Elapsed time to handle boost-integer:x64-windows: 62.3 ms
+boost-integer:x64-windows package ABI: 03f4985ad94c2bd73a6bdb9e8e7a3aad41dd376623943cbd074f7e99cdeac08e
+Installing 38/75 boost-regex:x64-windows@1.88.0...
+Elapsed time to handle boost-regex:x64-windows: 95.4 ms
+boost-regex:x64-windows package ABI: 9ae799fd06f206d9551d10712ccbcdfd3ab141dabbd545e0164a48acd7774f3a
+Installing 39/75 boost-conversion:x64-windows@1.88.0...
+Elapsed time to handle boost-conversion:x64-windows: 35.1 ms
+boost-conversion:x64-windows package ABI: b231c49e2d84bab06bb9db33fa68410d516e6ba75e4800d9d4f5ab51ea5c09f3
+Installing 40/75 boost-array:x64-windows@1.88.0...
+Elapsed time to handle boost-array:x64-windows: 32 ms
+boost-array:x64-windows package ABI: 6d104db7d8e3ead73f1a81f510397bd554545dde42cd7b1ed44b41afd3871212
+Installing 41/75 boost-range:x64-windows@1.88.0...
+Elapsed time to handle boost-range:x64-windows: 90.4 ms
+boost-range:x64-windows package ABI: cf8885b8675c845789db335e9bf774c7a43349fcb615792e1c129a0008b8b6de
+Installing 42/75 boost-numeric-conversion:x64-windows@1.88.0...
+Elapsed time to handle boost-numeric-conversion:x64-windows: 43.1 ms
+boost-numeric-conversion:x64-windows package ABI: d5e2dbab5e20320e1f5d15603d6272a16f5c8d9d1ff0e896197365c6dd3b9f45
+Installing 43/75 boost-move:x64-windows@1.88.0...
+Elapsed time to handle boost-move:x64-windows: 50.5 ms
+boost-move:x64-windows package ABI: 909f935d45cd7e4fd1d452204f8971bd9f45e8d26da24c916e3fba79f36b048b
+Installing 44/75 boost-intrusive:x64-windows@1.88.0...
+Elapsed time to handle boost-intrusive:x64-windows: 68.2 ms
+boost-intrusive:x64-windows package ABI: ca0541c317999ce4c97b4b45f1516dee9a3f68e7eeac4e802e0a2ea88a96103d
+Installing 45/75 boost-container:x64-windows@1.88.0...
+Elapsed time to handle boost-container:x64-windows: 77.5 ms
+boost-container:x64-windows package ABI: 1e193c7e1af78c45083009669c7942ca4adda0193f136ab777fcd14f4eb34e84
+Installing 46/75 boost-lexical-cast:x64-windows@1.88.0...
+Elapsed time to handle boost-lexical-cast:x64-windows: 63.4 ms
+boost-lexical-cast:x64-windows package ABI: 3cbcbe9667592eaebd3114c4c203c4a3da40ec28fce8cfee1fbc7ea3ece880e3
+Installing 47/75 boost-unordered:x64-windows@1.88.0...
+Elapsed time to handle boost-unordered:x64-windows: 112 ms
+boost-unordered:x64-windows package ABI: 3bcf0f0ec553c22717482300f78052e86d3e0fbc049deecb7c188832a260891a
+Installing 48/75 boost-exception:x64-windows@1.88.0...
+Elapsed time to handle boost-exception:x64-windows: 64.9 ms
+boost-exception:x64-windows package ABI: 944f31ad2be9744230cd16dfcb08b2c2bdd80fe60f6c921efb4ffb8efaac01ad
+Installing 49/75 boost-algorithm:x64-windows@1.88.0...
+Elapsed time to handle boost-algorithm:x64-windows: 153 ms
+boost-algorithm:x64-windows package ABI: b8a8c241715592bcd7a136b37724b4a2764a2938eb0f3502518f807c1830e18e
+Installing 50/75 boost-date-time:x64-windows@1.88.0...
+Elapsed time to handle boost-date-time:x64-windows: 87.1 ms
+boost-date-time:x64-windows package ABI: bb950f1ca130794cc53b64e8f0ae97df9ec307ed9950e124a4a9127e9cedc275
+Installing 51/75 boost-pool:x64-windows@1.88.0...
+Elapsed time to handle boost-pool:x64-windows: 43.7 ms
+boost-pool:x64-windows package ABI: 33f76e0f8f5cf7473e9272623c9e8ea04e021532c76137ddd8650b11cd2ee51e
+Installing 52/75 boost-context:x64-windows@1.88.0...
+Elapsed time to handle boost-context:x64-windows: 68.7 ms
+boost-context:x64-windows package ABI: 4db9f548d8172c77caa976c6beeac90af77e433ccb999ba5fabd2f28ae985eea
+Installing 53/75 boost-align:x64-windows@1.88.0...
+Elapsed time to handle boost-align:x64-windows: 68.8 ms
+boost-align:x64-windows package ABI: d6c4793080b50558bf7f21241f9dbaaffb0769023af424b608b87b77195d7d59
+Installing 54/75 boost-asio:x64-windows@1.88.0...
+Elapsed time to handle boost-asio:x64-windows: 265 ms
+boost-asio:x64-windows package ABI: 89160a4fd1ccd8e0d756c62d1e0097ac548b9c1352f089a03d1526bd68d48085
+Installing 55/75 zlib:x64-windows@1.3.1...
+Elapsed time to handle zlib:x64-windows: 44 ms
+zlib:x64-windows package ABI: 7b07d1c5bd688899450e9a4c6ef47f749f0a3fa10c19e50e9845f0fceb0fd6a4
+Installing 56/75 curl[core,non-http,schannel,ssl,sspi]:x64-windows@8.13.0#1...
+Elapsed time to handle curl:x64-windows: 62.6 ms
+curl:x64-windows package ABI: dc157a06dbfce9987b0f8a9a24df3cd55fa8862b55cbc55714f55ea0a1d145d1
+Installing 57/75 cpr[core,ssl]:x64-windows@1.11.2...
+Elapsed time to handle cpr:x64-windows: 173 ms
+cpr:x64-windows package ABI: c48f7008073aa2619dc2fe79963754bf1cbbde0b7be2a1748fe174c98c16aecd
+Installing 58/75 fmt:x64-windows@11.0.2#1...
+Elapsed time to handle fmt:x64-windows: 66.7 ms
+fmt:x64-windows package ABI: bd30166effba54c4ffd9a8b78d1d5dd0c76a34761d6ed78d603e7d8156fed07f
+Installing 59/75 hwloc:x64-windows@2.11.2...
+Elapsed time to handle hwloc:x64-windows: 115 ms
+hwloc:x64-windows package ABI: 7020ff95d77287afe8ba127c0eedeece1d7b4b8a1fd98def04aa44216d102789
+Installing 60/75 nlohmann-json:x64-windows@3.12.0...
+Elapsed time to handle nlohmann-json:x64-windows: 92.1 ms
+nlohmann-json:x64-windows package ABI: 1cfacf107c24a81d178fffa6fcdc70dad9c4afe425ee13c1395262c0545f8cae
+Installing 61/75 vcpkg-cmake-get-vars:x64-windows@2024-09-22...
+Elapsed time to handle vcpkg-cmake-get-vars:x64-windows: 38.2 ms
+vcpkg-cmake-get-vars:x64-windows package ABI: 26ffc0ffb5709b78ba5f890f7a35e7194607a0d85c4783fae694e56831191a31
+Installing 62/75 openssl:x64-windows@3.5.0#1...
+Elapsed time to handle openssl:x64-windows: 102 ms
+openssl:x64-windows package ABI: 736301f5d7c9f5e986794c8308fd61163de432b2664edc4245d89185f9e0e21c
+Installing 63/75 sqlite3[core,json1]:x64-windows@3.49.2...
+Elapsed time to handle sqlite3:x64-windows: 46.5 ms
+sqlite3:x64-windows package ABI: a4439c7580faa377badc5c60a63b9431ee496d3b6fe0a0c13e6c6f184b0eea3c
+Installing 64/75 liblzma:x64-windows@5.8.1...
+Elapsed time to handle liblzma:x64-windows: 64.3 ms
+liblzma:x64-windows package ABI: b58121e927c2d379dcfaa634d5bbe6fe6ca5fe5eecd61b4e2909dd032ca8cf37
+Installing 65/75 libffi:x64-windows@3.4.8...
+Elapsed time to handle libffi:x64-windows: 46.8 ms
+libffi:x64-windows package ABI: 59726bf20b2f919aa5c1264cd9dcd3cf2a403092fb9200be9efc59cb1ea09770
+Installing 66/75 expat:x64-windows@2.7.1...
+Elapsed time to handle expat:x64-windows: 43.2 ms
+expat:x64-windows package ABI: d5fa989737381c6a42827d56c8f55756cffea7dde4223b3171db83615cefa70d
+Installing 67/75 bzip2[core,tool]:x64-windows@1.0.8#6...
+Elapsed time to handle bzip2:x64-windows: 45.5 ms
+bzip2:x64-windows package ABI: 229213fade88ab1202001df2943ca753b0f7af1e2944827caf1adc696eee97da
+Installing 68/75 vcpkg-tool-meson:x64-windows@1.7.2...
+Elapsed time to handle vcpkg-tool-meson:x64-windows: 49.8 ms
+vcpkg-tool-meson:x64-windows package ABI: 9fa0a2fb1bbea7b2453b6e34d8dcdb0dc24e3142d745a7233f17f9511c9d2573
+Installing 69/75 pkgconf:x64-windows@2.4.3#1...
+Elapsed time to handle pkgconf:x64-windows: 44.3 ms
+pkgconf:x64-windows package ABI: 5ec5cbf8ce6f674d51fc1c20a6aaa035a492217854de54d40506598dd1c14b65
+Installing 70/75 vcpkg-pkgconfig-get-modules:x64-windows@2024-04-03...
+Elapsed time to handle vcpkg-pkgconfig-get-modules:x64-windows: 37.4 ms
+vcpkg-pkgconfig-get-modules:x64-windows package ABI: 8df590a7cae81f3ec6be570568fa2e14e97446bbd520d4783bb8b80a4f55929e
+Installing 71/75 vcpkg-msbuild:x64-windows@2023-08-08...
+Elapsed time to handle vcpkg-msbuild:x64-windows: 53.2 ms
+vcpkg-msbuild:x64-windows package ABI: 1b7cd86e90abd5b5a044495ba7250ce4a7864a8da509199f67826a0b6b046be4
+Installing 72/75 vcpkg-get-python:x64-windows@2025-02-09...
+Elapsed time to handle vcpkg-get-python:x64-windows: 39 ms
+vcpkg-get-python:x64-windows package ABI: 43aaa6a1117e9c7f47ecfc2f1a52b04d488eee1544670f607b2ef2e3d65d3cb1
+Installing 73/75 python3[core,extensions]:x64-windows@3.12.9...
+Elapsed time to handle python3:x64-windows: 1.1 s
+python3:x64-windows package ABI: 59f7927cf4b25b4e682e028e22776a26847315008eb30da51ce67b455f1dfe75
+Installing 74/75 pybind11:x64-windows@2.13.6...
+Elapsed time to handle pybind11:x64-windows: 88 ms
+pybind11:x64-windows package ABI: 61bdf3d2fb1118f201e19dc62eb6a1a4877043afb317c2b53ce6d900568d2c57
+Installing 75/75 yaml-cpp:x64-windows@0.8.0#3...
+Elapsed time to handle yaml-cpp:x64-windows: 64.8 ms
+yaml-cpp:x64-windows package ABI: 6767d4e95b9b6223755a66709b88782e724755cabb31d34168692125326f77e9
+boost-asio provides CMake targets:
+
+  # this is heuristically generated, and may not be correct
+  find_package(boost_asio CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE Boost::asio)
+
+cpr provides CMake targets:
+
+  # this is heuristically generated, and may not be correct
+  find_package(cpr CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE cpr::cpr)
+
+The package fmt provides CMake targets:
+
+    find_package(fmt CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE fmt::fmt)
+
+    # Or use the header-only version
+    find_package(fmt CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE fmt::fmt-header-only)
+
+hwloc provides pkg-config modules:
+
+  # Hardware locality detection and management library
+  hwloc
+
+The package nlohmann-json provides CMake targets:
+
+    find_package(nlohmann_json CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE nlohmann_json::nlohmann_json)
+
+The package nlohmann-json can be configured to not provide implicit conversions via a custom triplet file:
+
+    set(nlohmann-json_IMPLICIT_CONVERSIONS OFF)
+
+For more information, see the docs here:
+
+    https://json.nlohmann.me/api/macros/json_use_implicit_conversions/
+
+openssl is compatible with built-in CMake targets:
+
+  find_package(OpenSSL REQUIRED)
+  target_link_libraries(main PRIVATE OpenSSL::SSL)
+  target_link_libraries(main PRIVATE OpenSSL::Crypto)
+
+pybind11 provides CMake targets. There are two modes provided; classic, which is built on the old Python
+discovery packages in CMake, or the new FindPython mode, which uses FindPython
+from 3.12+ forward (3.15+ _highly_ recommended).
+
+New FindPython mode:
+
+    find_package(Python COMPONENTS Interpreter Development)
+    find_package(pybind11 CONFIG)
+
+    # pybind11 method:
+    pybind11_add_module(MyModule1 src1.cpp)
+
+    # Python method:
+    Python_add_library(MyModule2 src2.cpp)
+    target_link_libraries(MyModule2 pybind11::headers)
+    set_target_properties(MyModule2 PROPERTIES
+        INTERPROCEDURAL_OPTIMIZATION ON
+        CXX_VISIBILITY_PRESET ON
+        VISIBILITY_INLINES_HIDDEN ON
+    )
+
+For more information see here:
+    https://pybind11.readthedocs.io/en/latest/compiling.html#building-with-cmake
+yaml-cpp provides CMake targets:
+
+  # this is heuristically generated, and may not be correct
+  find_package(yaml-cpp CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE yaml-cpp::yaml-cpp)
+
+yaml-cpp provides pkg-config modules:
+
+  # A YAML parser and emitter for C++
+  yaml-cpp
+
+All requested installations completed successfully in: 7 s
+-- Running vcpkg install - done
+-- Selecting Windows SDK version 10.0.26100.0 to target Windows 10.0.19045.
+-- The CXX compiler identification is MSVC 19.44.35209.0
+-- The C compiler identification is MSVC 19.44.35209.0
+-- The ASM compiler identification is MSVC
+-- Found assembler: C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- 🔎 Buscando dependencias...
+-- ✅ Usando Vcpkg toolchain: C:/vcpkg/scripts/buildsystems/vcpkg.cmake
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Failed
+-- Looking for pthread_create in pthreads
+-- Looking for pthread_create in pthreads - not found
+-- Looking for pthread_create in pthread
+-- Looking for pthread_create in pthread - not found
+-- Found Threads: TRUE
+-- Performing Test HAVE_STDATOMIC
+-- Performing Test HAVE_STDATOMIC - Success
+-- Found WrapAtomic: TRUE
+-- Could NOT find WrapVulkanHeaders (missing: Vulkan_INCLUDE_DIR)
+-- Found nlohmann_json: C:/zartrux-miner/build/vcpkg_installed/x64-windows/share/nlohmann_json/nlohmann_jsonConfig.cmake (found suitable version "3.12.0", minimum required is "3.2.0")
+-- Found ZLIB: optimized;C:/zartrux-miner/build/vcpkg_installed/x64-windows/lib/zlib.lib;debug;C:/zartrux-miner/build/vcpkg_installed/x64-windows/debug/lib/zlibd.lib (found suitable version "1.3.1", minimum required is "1")
+-- Found OpenSSL: optimized;C:/zartrux-miner/build/vcpkg_installed/x64-windows/lib/libcrypto.lib;debug;C:/zartrux-miner/build/vcpkg_installed/x64-windows/debug/lib/libcrypto.lib (found version "3.5.0")
+CMake Warning (dev) at build/vcpkg_installed/x64-windows/share/pybind11/FindPythonLibsNew.cmake:101 (message):
+  Policy CMP0148 is not set: The FindPythonInterp and FindPythonLibs modules
+  are removed.  Run "cmake --help-policy CMP0148" for policy details.  Use
+  the cmake_policy command to set the policy and suppress this warning, or
+  preferably upgrade to using FindPython, either by calling it explicitly
+  before pybind11, or by setting PYBIND11_FINDPYTHON ON before pybind11.
+Call Stack (most recent call first):
+  C:/vcpkg/scripts/buildsystems/vcpkg.cmake:893 (_find_package)
+  build/vcpkg_installed/x64-windows/share/pybind11/pybind11Tools.cmake:50 (find_package)
+  build/vcpkg_installed/x64-windows/share/pybind11/pybind11Common.cmake:228 (include)
+  build/vcpkg_installed/x64-windows/share/pybind11/pybind11Config.cmake:250 (include)
+  C:/vcpkg/scripts/buildsystems/vcpkg.cmake:893 (_find_package)
+  CMakeLists.txt:39 (find_package)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at build/vcpkg_installed/x64-windows/share/pythoninterp/vcpkg-cmake-wrapper.cmake:10 (_find_package):
+  Policy CMP0148 is not set: The FindPythonInterp and FindPythonLibs modules
+  are removed.  Run "cmake --help-policy CMP0148" for policy details.  Use
+  the cmake_policy command to set the policy and suppress this warning.
+
+Call Stack (most recent call first):
+  C:/vcpkg/scripts/buildsystems/vcpkg.cmake:847 (include)
+  build/vcpkg_installed/x64-windows/share/pybind11/FindPythonLibsNew.cmake:114 (find_package)
+  C:/vcpkg/scripts/buildsystems/vcpkg.cmake:893 (_find_package)
+  build/vcpkg_installed/x64-windows/share/pybind11/pybind11Tools.cmake:50 (find_package)
+  build/vcpkg_installed/x64-windows/share/pybind11/pybind11Common.cmake:228 (include)
+  build/vcpkg_installed/x64-windows/share/pybind11/pybind11Config.cmake:250 (include)
+  C:/vcpkg/scripts/buildsystems/vcpkg.cmake:893 (_find_package)
+  CMakeLists.txt:39 (find_package)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+-- Found PythonInterp: C:/Program Files/Python311/python.exe (found suitable version "3.11.9", minimum required is "3.7")
+-- Found PythonLibs: C:/Program Files/Python311/libs/python311.lib
+-- Performing Test HAS_MSVC_GL_LTCG
+-- Performing Test HAS_MSVC_GL_LTCG - Success
+-- Found pybind11: C:/zartrux-miner/build/vcpkg_installed/x64-windows/include (found version "2.13.6")
+-- Found Python: optimized;C:/zartrux-miner/build/vcpkg_installed/x64-windows/lib/python312.lib;debug;C:/zartrux-miner/build/vcpkg_installed/x64-windows/debug/lib/python312_d.lib (found version "3.12.9") found components: Development Development.Module Development.Embed
+-- ✅ Todas las dependencias principales han sido encontradas.
+-- 🚀 LTO habilitado para compilaciones Release.
+-- ✨ Configuración de ZartruxMiner finalizada.
+-- Configuring done (256.2s)
+-- Generating done (0.2s)
+-- Build files have been written to: C:/zartrux-miner/build
+PS C:\zartrux-miner\build>
+PS C:\zartrux-miner\build>
+PS C:\zartrux-miner\build> cmake --build . --config Release
+Versión de MSBuild 17.14.10+8b8e13593 para .NET Framework
+
+  1>Checking Build System
+  Building Custom Rule C:/zartrux-miner/src/CMakeLists.txt
+  Cpu.cpp
+  kernel_x86_avx.cpp
+  kernel_x86_avx512.cpp
+  kernel_x86_generic.cpp
+  kernel_x86_sse2.cpp
+  JobManager.cpp
+  MinerCore.cpp
+  MiningModeManager.cpp
+  NonceValidator.cpp
+C:\zartrux-miner\src\core\NonceValidator.cpp(42,5): error C2660: 'NonceValidator::insertNonce': la función no acepta 5
+argumentos [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+  PoolDispatcher.cpp
+  hash.cpp
+      C:\zartrux-miner\src\core\NonceValidator.h(69,17):
+      vea la declaración de 'NonceValidator::insertNonce'
+      C:\zartrux-miner\src\core\NonceValidator.cpp(42,5):
+      al hacer coincidir la lista de argumentos '(std::vector<uint8_t,std::allocator<uint8_t>>, uint64_t, const size_t,
+   const size_t, const NonceValidator::Endianness)'
+
+C:\zartrux-miner\src\core\NonceValidator.cpp(50,22): error C2511: 'void NonceValidator::insertNonce(std::vector<uint8_t
+,std::allocator<uint8_t>> &,uint64_t,size_t,size_t,NonceValidator::Endianness)': la función miembro sobrecargada no se
+ha encontrado en 'NonceValidator' [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\core\NonceValidator.h(15,7):
+      vea la declaración de 'NonceValidator'
+
+C:\zartrux-miner\src\core\NonceValidator.cpp(64,7): error C2614: 'NonceValidator': inicialización de miembro no válida:
+ 'm_config' no es una base o miembro [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\NonceValidator.cpp(70,55): error C2065: 'm_config': identificador no declarado [C:\zartrux-mi
+ner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\NonceValidator.cpp(71,24): error C3536: 'hash': no se puede usar antes de inicializarse [C:\z
+artrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\NonceValidator.cpp(71,38): error C2065: 'm_config': identificador no declarado [C:\zartrux-mi
+ner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\NonceValidator.cpp(93,13): error C2660: 'NonceValidator::insertNonce': la función no acepta 5
+ argumentos [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\core\NonceValidator.h(69,17):
+      vea la declaración de 'NonceValidator::insertNonce'
+      C:\zartrux-miner\src\core\NonceValidator.cpp(93,13):
+      al hacer coincidir la lista de argumentos '(std::vector<uint8_t,std::allocator<uint8_t>>, _Ty, const size_t, cons
+  t size_t, const NonceValidator::Endianness)'
+          with
+          [
+              _Ty=uint64_t
+          ]
+
+C:\zartrux-miner\src\core\NonceValidator.cpp(137,21): error C2660: 'NonceValidator::insertNonce': la función no acepta
+5 argumentos [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\core\NonceValidator.h(69,17):
+      vea la declaración de 'NonceValidator::insertNonce'
+      C:\zartrux-miner\src\core\NonceValidator.cpp(137,21):
+      al hacer coincidir la lista de argumentos '(std::vector<uint8_t,std::allocator<uint8_t>>, const uint64_t, const s
+  ize_t, const size_t, const NonceValidator::Endianness)'
+
+C:\zartrux-miner\src\core\MinerCore.cpp(3,1): error C1083: No se puede abrir el archivo incluir: 'metrics/PrometheusExp
+orter.h': No such file or directory [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\MiningModeManager.cpp(60,46): error C2039: "getString": no es un miembro de "ConfigManager" [
+C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\utils\config_manager.h(9,7):
+      vea la declaración de 'ConfigManager'
+
+C:\zartrux-miner\src\core\MiningModeManager.cpp(60,46): error C3861: 'getString': no se encontró el identificador [C:\z
+artrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\MiningModeManager.cpp(72,24): error C2352: 'ConfigManager::set': una llamada de una función m
+iembro no estática requiere un objeto [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\utils\config_manager.h(30,10):
+      vea la declaración de 'ConfigManager::set'
+
+C:\zartrux-miner\src\core\MiningModeManager.cpp(73,24): error C2352: 'ConfigManager::save': una llamada de una función
+miembro no estática requiere un objeto [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\utils\config_manager.h(24,10):
+      vea la declaración de 'ConfigManager::save'
+
+C:\zartrux-miner\src\core\MiningModeManager.cpp(81,41): error C2653: 'PoolDispatcher': no es un nombre de clase o espac
+io de nombres [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\MiningModeManager.cpp(81,71): error C2039: "hasActivePools": no es un miembro de "MiningModeM
+anager" [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+  IAReceiver.cpp
+      C:\zartrux-miner\src\core\MiningModeManager.h(45,7):
+      vea la declaración de 'MiningModeManager'
+
+C:\zartrux-miner\src\core\MiningModeManager.cpp(86,36): error C2039: "isAvailable": no es un miembro de "IAReceiver" [C
+:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\core\ia\IAReceiver.h(22,7):
+      vea la declaración de 'IAReceiver'
+
+  WorkerThread.cpp
+C:\zartrux-miner\src\core\MiningModeManager.cpp(96,24): error C2039: "getCPUTemp": no es un miembro de "SystemMonitor"
+[C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\runtime\SystemMonitor.h(26,7):
+      vea la declaración de 'SystemMonitor'
+
+C:\zartrux-miner\src\core\MiningModeManager.cpp(96,24): error C3861: 'getCPUTemp': no se encontró el identificador [C:\
+zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\MiningModeManager.cpp(102,9): error C2653: 'PowerSafe': no es un nombre de clase o espacio de
+ nombres [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\MiningModeManager.cpp(102,20): error C3861: 'getEnergyState': no se encontró el identificador
+ [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\MiningModeManager.cpp(102,40): error C2653: 'PowerSafe': no es un nombre de clase o espacio d
+e nombres [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\MiningModeManager.cpp(102,51): error C2065: 'CRITICAL': identificador no declarado [C:\zartru
+x-miner\build\src\zartrux_libs.vcxproj]
+  aes_hash.cpp
+C:\zartrux-miner\src\core\MiningModeManager.cpp(150,18): error C2653: 'PoolDispatcher': no es un nombre de clase o espa
+cio de nombres [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\MiningModeManager.cpp(157,22): error C2039: "disable": no es un miembro de "MiningModeManager
+" [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\core\MiningModeManager.h(45,7):
+      vea la declaración de 'MiningModeManager'
+
+C:\zartrux-miner\src\core\MiningModeManager.cpp(158,20): error C2039: "deactivate": no es un miembro de "IAReceiver" [C
+:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\core\ia\IAReceiver.h(22,7):
+      vea la declaración de 'IAReceiver'
+
+C:\zartrux-miner\src\core\MiningModeManager.cpp(162,22): error C2039: "enable": no es un miembro de "MiningModeManager"
+ [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\core\MiningModeManager.h(45,7):
+      vea la declaración de 'MiningModeManager'
+
+C:\zartrux-miner\src\core\MiningModeManager.cpp(163,20): error C2039: "deactivate": no es un miembro de "IAReceiver" [C
+:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\core\ia\IAReceiver.h(22,7):
+      vea la declaración de 'IAReceiver'
+
+C:\zartrux-miner\src\core\MiningModeManager.cpp(167,22): error C2039: "disable": no es un miembro de "MiningModeManager
+" [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\core\MiningModeManager.h(45,7):
+      vea la declaración de 'MiningModeManager'
+
+C:\zartrux-miner\src\core\MiningModeManager.cpp(168,20): error C2039: "activate": no es un miembro de "IAReceiver" [C:\
+zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\core\ia\IAReceiver.h(22,7):
+      vea la declaración de 'IAReceiver'
+
+C:\zartrux-miner\src\core\MiningModeManager.cpp(172,22): error C2039: "enable": no es un miembro de "MiningModeManager"
+ [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\core\MiningModeManager.h(45,7):
+      vea la declaración de 'MiningModeManager'
+
+C:\zartrux-miner\src\core\MiningModeManager.cpp(173,20): error C2039: "activate": no es un miembro de "IAReceiver" [C:\
+zartrux-miner\build\src\zartrux_libs.vcxproj]
+  allocator.cpp
+  blake2_generator.cpp
+  bytecode_machine.cpp
+      C:\zartrux-miner\src\core\ia\IAReceiver.h(22,7):
+      vea la declaración de 'IAReceiver'
+
+C:\zartrux-miner\src\core\MiningModeManager.cpp(174,53): error C2039: "getFloat": no es un miembro de "ConfigManager" [
+C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\utils\config_manager.h(9,7):
+      vea la declaración de 'ConfigManager'
+
+C:\zartrux-miner\src\core\MiningModeManager.cpp(174,53): error C3861: 'getFloat': no se encontró el identificador [C:\z
+artrux-miner\build\src\zartrux_libs.vcxproj]
+  dataset.cpp
+C:\zartrux-miner\src\core\JobManager.cpp(22,7): error C2614: 'JobManager': inicialización de miembro no válida: 'm_iaEn
+dpoint' no es una base o miembro [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\JobManager.cpp(23,5): error C3861: 'loadCheckpoint': no se encontró el identificador [C:\zart
+rux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\JobManager.cpp(30,17): error C3861: 'saveCheckpoint': no se encontró el identificador [C:\zar
+trux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\JobManager.cpp(50,5): error C3861: 'saveCheckpoint': no se encontró el identificador [C:\zart
+rux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\JobManager.cpp(64,18): error C2039: "setIAEndpoint": no es un miembro de "JobManager" [C:\zar
+trux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\core\JobManager.h(41,7):
+      vea la declaración de 'JobManager'
+
+  instructions_portable.cpp
+  jit_compiler_a64.cpp
+C:\zartrux-miner\src\core\JobManager.cpp(65,38): error C2065: 'm_mutex': identificador no declarado [C:\zartrux-miner\b
+uild\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\JobManager.cpp(66,5): error C2065: 'm_iaEndpoint': identificador no declarado [C:\zartrux-min
+er\build\src\zartrux_libs.vcxproj]
+  jit_compiler_fallback.cpp
+  jit_compiler_x86.cpp
+  randomx.cpp
+C:\zartrux-miner\src\core\JobManager.cpp(69,25): error C2039: "getIAEndpoint": no es un miembro de "JobManager" [C:\zar
+trux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\core\JobManager.h(41,7):
+      vea la declaración de 'JobManager'
+
+C:\zartrux-miner\src\core\JobManager.cpp(69,25): error C2270: 'getIAEndpoint': modificadores no permitidos en funciones
+ que no sean miembro [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\JobManager.cpp(70,38): error C2065: 'm_mutex': identificador no declarado [C:\zartrux-miner\b
+uild\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\JobManager.cpp(71,12): error C2065: 'm_iaEndpoint': identificador no declarado [C:\zartrux-mi
+ner\build\src\zartrux_libs.vcxproj]
+  soft_aes.cpp
+  superscalar.cpp
+  virtual_machine.cpp
+C:\zartrux-miner\src\core\JobManager.cpp(80,32): error C2065: 'MAX_QUEUE_SIZE': identificador no declarado [C:\zartrux-
+miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\JobManager.cpp(82,13): error C2065: 'm_iaContributed': identificador no declarado [C:\zartrux
+-miner\build\src\zartrux_libs.vcxproj]
+  virtual_memory.cpp
+  vm_compiled.cpp
+C:\zartrux-miner\src\core\JobManager.cpp(88,18): error C2039: "processNonces": no es un miembro de "JobManager" [C:\zar
+trux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\core\JobManager.h(41,7):
+      vea la declaración de 'JobManager'
+
+C:\zartrux-miner\src\core\JobManager.cpp(91,38): error C2065: 'm_mutex': identificador no declarado [C:\zartrux-miner\b
+uild\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\JobManager.cpp(96,9): error C2065: 'm_processedCount': identificador no declarado [C:\zartrux
+-miner\build\src\zartrux_libs.vcxproj]
+  vm_compiled_light.cpp
+C:\zartrux-miner\src\core\JobManager.cpp(110,13): error C3861: 'submitValidNonce': no se encontró el identificador [C:\
+zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\JobManager.cpp(114,5): error C2065: 'm_validNonces': identificador no declarado [C:\zartrux-m
+iner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\JobManager.cpp(115,5): error C2065: 'm_validNoncesSinceLog': identificador no declarado [C:\z
+artrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\JobManager.cpp(122,9): error C2065: 'm_validNoncesSinceLog': identificador no declarado [C:\z
+artrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\JobManager.cpp(122,34): error C2065: 'LOG_ROTATE_EVERY': identificador no declarado [C:\zartr
+ux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\JobManager.cpp(124,9): error C2065: 'm_validNoncesSinceLog': identificador no declarado [C:\z
+artrux-miner\build\src\zartrux_libs.vcxproj]
+  vm_interpreted.cpp
+  vm_interpreted_light.cpp
+C:\zartrux-miner\src\core\JobManager.cpp(130,21): error C2039: "exportStatusJSON": no es un miembro de "StatusExporter"
+ [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\utils\StatusExporter.h(31,7):
+      vea la declaración de 'StatusExporter'
+
+C:\zartrux-miner\src\core\JobManager.cpp(130,38): error C2065: 'm_cpuQueue': identificador no declarado [C:\zartrux-min
+er\build\src\zartrux_libs.vcxproj]
+  LegacyAllocator.cpp
+  VirtualMemory.cpp
+C:\zartrux-miner\src\core\JobManager.cpp(130,57): error C2065: 'm_iaQueue': identificador no declarado [C:\zartrux-mine
+r\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\JobManager.cpp(130,75): error C2065: 'm_validNonces': identificador no declarado [C:\zartrux-
+miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\JobManager.cpp(130,90): error C2065: 'm_processedCount': identificador no declarado [C:\zartr
+ux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\JobManager.cpp(130,21): error C3861: 'exportStatusJSON': no se encontró el identificador [C:\
+zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\PoolDispatcher.cpp(25,41): error C2039: "modeToString": no es un miembro de "MiningModeManage
+r" [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\core\MiningModeManager.h(45,7):
+      vea la declaración de 'MiningModeManager'
+
+  PoolFailover.cpp
+  StratumClient.cpp
+  WebsocketBackend.cpp
+C:\zartrux-miner\src\core\PoolDispatcher.cpp(38,17): error C2665: 'Logger::info':ninguna función sobrecargada pudo conv
+ertir todos los tipos de argumento [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\utils\Logger.h(38,17):
+      puede ser 'void Logger::info(const std::string &,const char *,...)'
+          C:\zartrux-miner\src\core\PoolDispatcher.cpp(38,17):
+          'void Logger::info(const std::string &,const char *,...)': el argumento 2 no puede convertirse de 'const std:
+  :string' a 'const char *'
+              C:\zartrux-miner\src\core\PoolDispatcher.cpp(38,65):
+              No hay disponible ningún operador de conversión definido por el usuario que pueda realizar esta conversió
+  n, o bien no se puede llamar al operador
+      C:\zartrux-miner\src\utils\Logger.h(57,17):
+      o       'void Logger::info(const std::string &,T)'
+          C:\zartrux-miner\src\core\PoolDispatcher.cpp(38,17):
+          "void Logger::info(const std::string &,T)": espera 2 argumentos - 3 proporcionado
+      C:\zartrux-miner\src\core\PoolDispatcher.cpp(38,17):
+      al hacer coincidir la lista de argumentos '(const char [40], const std::string, const std::string)'
+
+C:\zartrux-miner\src\core\PoolDispatcher.cpp(54,17): error C2665: 'Logger::info':ninguna función sobrecargada pudo conv
+ertir todos los tipos de argumento [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+  AdaptiveScheduler.cpp
+      C:\zartrux-miner\src\utils\Logger.h(38,17):
+      puede ser 'void Logger::info(const std::string &,const char *,...)'
+          C:\zartrux-miner\src\core\PoolDispatcher.cpp(54,17):
+          'void Logger::info(const std::string &,const char *,...)': el argumento 2 no puede convertirse de 'uint8_t' a
+   'const char *'
+              C:\zartrux-miner\src\core\PoolDispatcher.cpp(54,63):
+              La conversión de un tipo entero a un tipo de puntero requiere reinterpret_cast, conversión de estilo de C
+   o conversión de estilo de función entre paréntesis
+      C:\zartrux-miner\src\utils\Logger.h(57,17):
+      o       'void Logger::info(const std::string &,T)'
+          C:\zartrux-miner\src\core\PoolDispatcher.cpp(54,17):
+          "void Logger::info(const std::string &,T)": espera 2 argumentos - 3 proporcionado
+      C:\zartrux-miner\src\core\PoolDispatcher.cpp(54,17):
+      al hacer coincidir la lista de argumentos '(const char [38], uint8_t, uint16_t)'
+
+C:\zartrux-miner\src\core\PoolDispatcher.cpp(90,52): error C2440: '<function-style-cast>': no se puede realizar la conv
+ersión de 'initializer list' a 'cpr::Authentication' [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\core\PoolDispatcher.cpp(90,52):
+      'cpr::Authentication::Authentication': la función no acepta 2 argumentos
+          C:\zartrux-miner\src\core\PoolDispatcher.cpp(90,52):
+          al hacer coincidir la lista de argumentos '(const std::string, const std::string)'
+
+C:\zartrux-miner\src\core\PoolDispatcher.cpp(99,25): error C2665: 'Logger::warn':ninguna función sobrecargada pudo conv
+ertir todos los tipos de argumento [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\utils\Logger.h(37,17):
+      puede ser 'void Logger::warn(const std::string &,const char *,...)'
+          C:\zartrux-miner\src\core\PoolDispatcher.cpp(99,25):
+          'void Logger::warn(const std::string &,const char *,...)': el argumento 2 no puede convertirse de 'long' a 'c
+  onst char *'
+              C:\zartrux-miner\src\core\PoolDispatcher.cpp(99,72):
+              La conversión de un tipo entero a un tipo de puntero requiere reinterpret_cast, conversión de estilo de C
+   o conversión de estilo de función entre paréntesis
+      C:\zartrux-miner\src\utils\Logger.h(51,17):
+      o       'void Logger::warn(const std::string &,T)'
+          C:\zartrux-miner\src\core\PoolDispatcher.cpp(99,25):
+          "void Logger::warn(const std::string &,T)": espera 2 argumentos - 3 proporcionado
+      C:\zartrux-miner\src\core\PoolDispatcher.cpp(99,25):
+      al hacer coincidir la lista de argumentos '(const char [31], long, const std::string)'
+
+  PowerSafe.cpp
+C:\zartrux-miner\src\core\PoolDispatcher.cpp(104,21): error C2665: 'Logger::error':ninguna función sobrecargada pudo co
+nvertir todos los tipos de argumento [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\utils\Logger.h(36,17):
+      puede ser 'void Logger::error(const std::string &,const char *,...)'
+          C:\zartrux-miner\src\core\PoolDispatcher.cpp(104,21):
+          'void Logger::error(const std::string &,const char *,...)': el argumento 2 no puede convertirse de 'const std
+  ::string' a 'const char *'
+              C:\zartrux-miner\src\core\PoolDispatcher.cpp(104,64):
+              No hay disponible ningún operador de conversión definido por el usuario que pueda realizar esta conversió
+  n, o bien no se puede llamar al operador
+      C:\zartrux-miner\src\utils\Logger.h(63,17):
+      o       'void Logger::error(const std::string &,T)'
+          C:\zartrux-miner\src\core\PoolDispatcher.cpp(104,21):
+          "void Logger::error(const std::string &,T)": espera 2 argumentos - 3 proporcionado
+      C:\zartrux-miner\src\core\PoolDispatcher.cpp(104,21):
+      al hacer coincidir la lista de argumentos '(const char [26], const std::string, const char *)'
+
+C:\zartrux-miner\src\core\PoolDispatcher.cpp(122,25): error C2665: 'Logger::debug':ninguna función sobrecargada pudo co
+nvertir todos los tipos de argumento [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+  Please define _WIN32_WINNT or _WIN32_WINDOWS appropriately. For example:
+  - add -D_WIN32_WINNT=0x0601 to the compiler command line; or
+  - add _WIN32_WINNT=0x0601 to your project's Preprocessor Definitions.
+  Assuming _WIN32_WINNT=0x0601 (i.e. Windows 7 target).
+  Please define _WIN32_WINNT or _WIN32_WINDOWS appropriately. For example:
+  - add -D_WIN32_WINNT=0x0601 to the compiler command line; or
+  - add _WIN32_WINNT=0x0601 to your project's Preprocessor Definitions.
+  Assuming _WIN32_WINNT=0x0601 (i.e. Windows 7 target).
+      C:\zartrux-miner\src\utils\Logger.h(39,17):
+      puede ser 'void Logger::debug(const std::string &,const char *,...)'
+          C:\zartrux-miner\src\core\PoolDispatcher.cpp(122,25):
+          'void Logger::debug(const std::string &,const char *,...)': el argumento 2 no puede convertirse de 'int' a 'c
+  onst char *'
+              C:\zartrux-miner\src\core\PoolDispatcher.cpp(122,67):
+              La conversión de un tipo entero a un tipo de puntero requiere reinterpret_cast, conversión de estilo de C
+   o conversión de estilo de función entre paréntesis
+      C:\zartrux-miner\src\core\PoolDispatcher.cpp(122,25):
+      al hacer coincidir la lista de argumentos '(const char [25], int, const std::string)'
+
+C:\zartrux-miner\src\core\PoolDispatcher.cpp(150,21): error C2039: "PoolConfig": no es un miembro de "zartrux::dispatch
+er::PoolDispatcher" [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\core\PoolDispatcher.h(33,11):
+      vea la declaración de 'zartrux::dispatcher::PoolDispatcher'
+
+C:\zartrux-miner\src\core\PoolDispatcher.cpp(161,81): error C2059: error de sintaxis: ';' [C:\zartrux-miner\build\src\z
+artrux_libs.vcxproj]
+C:\zartrux-miner\src\core\PoolDispatcher.cpp(164,30): error C2838: 'SMART': nombre completo no válido en la declaración
+ de miembro [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\PoolDispatcher.cpp(164,30): error C2065: 'SMART': identificador no declarado [C:\zartrux-mine
+r\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\PoolDispatcher.cpp(164,30): error C2131: la expresión no se evaluó como una constante [C:\zar
+trux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\core\PoolDispatcher.cpp(164,30):
+      se encontró una (sub)expresión no constante
+
+C:\zartrux-miner\src\core\PoolDispatcher.cpp(164,30): error C2051: la expresión case no es una constante [C:\zartrux-mi
+ner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\threads\WorkerThread.cpp(4,1): error C1083: No se puede abrir el archivo incluir: 'randomx.h'
+: No such file or directory [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\core\PoolDispatcher.cpp(250,17): error C2665: 'Logger::debug':ninguna función sobrecargada pudo co
+nvertir todos los tipos de argumento [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\utils\Logger.h(39,17):
+      puede ser 'void Logger::debug(const std::string &,const char *,...)'
+          C:\zartrux-miner\src\core\PoolDispatcher.cpp(250,17):
+          'void Logger::debug(const std::string &,const char *,...)': el argumento 2 no puede convertirse de 'const std
+  ::string' a 'const char *'
+              C:\zartrux-miner\src\core\PoolDispatcher.cpp(251,22):
+              No hay disponible ningún operador de conversión definido por el usuario que pueda realizar esta conversió
+  n, o bien no se puede llamar al operador
+      C:\zartrux-miner\src\core\PoolDispatcher.cpp(250,17):
+      al hacer coincidir la lista de argumentos '(const char [60], const std::string, uint64_t, uint64_t, double)'
+
+C:\zartrux-miner\src\crypto\randomx\aes_hash.cpp(198,16): error C3861: 'RandomX_AES': no se encontró el identificador [
+C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\crypto\randomx\aes_hash.hpp(28,6):
+      Diagnóstico en la función 'void hashAndFillAes1Rx4(void *,size_t,void *,void *)' generada por el compilador
+
+C:\zartrux-miner\src\crypto\randomx\aes_hash.cpp(198,16): error C2065: 'RandomX_AES': identificador no declarado [C:\za
+rtrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\crypto\randomx\aes_hash.hpp(28,6):
+      Diagnóstico en la función 'void hashAndFillAes1Rx4(void *,size_t,void *,void *)' generada por el compilador
+
+C:\zartrux-miner\src\core\ia\IAReceiver.cpp(72,45): error C2660: 'cpr::Session::Post': la función no acepta 2 argumento
+s [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\build\vcpkg_installed\x64-windows\include\cpr\session.h(198,14):
+      vea la declaración de 'cpr::Session::Post'
+      C:\zartrux-miner\src\core\ia\IAReceiver.cpp(72,45):
+      al hacer coincidir la lista de argumentos '(cpr::Url, cpr::Body)'
+
+C:\zartrux-miner\src\core\ia\IAReceiver.cpp(108,45): error C2660: 'cpr::Session::Post': la función no acepta 2 argument
+os [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\build\vcpkg_installed\x64-windows\include\cpr\session.h(198,14):
+      vea la declaración de 'cpr::Session::Post'
+      C:\zartrux-miner\src\core\ia\IAReceiver.cpp(108,45):
+      al hacer coincidir la lista de argumentos '(cpr::Url, cpr::Body)'
+
+C:\zartrux-miner\src\crypto\randomx\jit_compiler_a64.hpp(17,15): error C2653: 'JitCompilerA64': no es un nombre de clas
+e o espacio de nombres [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+  (compilando archivo de origen "../../src/crypto/randomx/jit_compiler_a64.cpp")
+
+C:\zartrux-miner\src\crypto\randomx\jit_compiler_a64.hpp(17,32): error C2146: error de sintaxis: falta ')' delante del
+identificador 'InstructionGeneratorA64' [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+  (compilando archivo de origen "../../src/crypto/randomx/jit_compiler_a64.cpp")
+
+C:\zartrux-miner\src\crypto\randomx\jit_compiler_a64.hpp(17,32): error C2146: error de sintaxis: falta ';' delante del
+identificador 'InstructionGeneratorA64' [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+  (compilando archivo de origen "../../src/crypto/randomx/jit_compiler_a64.cpp")
+
+C:\zartrux-miner\src\crypto\randomx\jit_compiler_a64.hpp(17,55): error C2059: error de sintaxis: ')' [C:\zartrux-miner\
+build\src\zartrux_libs.vcxproj]
+  (compilando archivo de origen "../../src/crypto/randomx/jit_compiler_a64.cpp")
+
+C:\zartrux-miner\src\crypto\randomx\jit_compiler_a64.hpp(17,32): error C4430: falta el especificador de tipo; se presup
+one int. Nota: C++ no admite default-int [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+  (compilando archivo de origen "../../src/crypto/randomx/jit_compiler_a64.cpp")
+
+C:\zartrux-miner\src\crypto\randomx\jit_compiler_a64.hpp(19,8): error C2371: 'randomx::JitCompilerA64': nueva definició
+n; tipos básicos distintos [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+  (compilando archivo de origen "../../src/crypto/randomx/jit_compiler_a64.cpp")
+      C:\zartrux-miner\src\crypto\randomx\jit_compiler_a64.hpp(17,15):
+      vea la declaración de 'randomx::JitCompilerA64'
+
+C:\zartrux-miner\src\crypto\randomx\jit_compiler_a64.cpp(4,1): error C1083: No se puede abrir el archivo incluir: 'cryp
+to/common/VirtualMemory.h': No such file or directory [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\crypto\randomx\instructions_portable.cpp(50,14): warning C4505: 'setRoundMode_': se ha quitado la
+función sin referencia con vinculación interna [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\crypto\randomx\jit_compiler_x86.cpp(6,1): error C1083: No se puede abrir el archivo incluir: 'cryp
+to/common/VirtualMemory.h': No such file or directory [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\crypto\randomx\program.hpp(12,9): warning C4099: 'randomx::ProgramConfiguration': nombre de tipo v
+isto anteriormente usando 'class' ahora se ve usando 'struct' [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+  (compilando archivo de origen "../../src/crypto/randomx/randomx.cpp")
+      C:\zartrux-miner\src\crypto\randomx\program.hpp(12,9):
+      vea la declaración de 'randomx::ProgramConfiguration'
+
+C:\zartrux-miner\src\crypto\randomx\randomx.cpp(12,1): error C1083: No se puede abrir el archivo incluir: 'src/arch/Cpu
+.h': No such file or directory [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\crypto\randomx\virtual_memory.cpp(30,11): warning C4189: 'mem': la variable local se ha inicializa
+do pero no se hace referencia a ella [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\crypto\randomx\jit_compiler_fallback.hpp(13,8): warning C4099: 'randomx::ProgramConfiguration': no
+mbre de tipo visto anteriormente usando 'struct' ahora se ve usando 'class' [C:\zartrux-miner\build\src\zartrux_libs.vc
+xproj]
+  (compilando archivo de origen "../../src/crypto/randomx/vm_compiled.cpp")
+      C:\zartrux-miner\src\crypto\randomx\program.hpp(12,9):
+      vea la declaración de 'randomx::ProgramConfiguration'
+
+C:\zartrux-miner\src\crypto\randomx\virtual_machine.cpp(89,3): error C3861: 'rx_blake2b_wrapper': no se encontró el ide
+ntificador [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\crypto\randomx\virtual_machine.cpp(89,3): error C2065: 'rx_blake2b_wrapper': identificador no decl
+arado [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\crypto\randomx\virtual_machine.cpp(101,3): error C3861: 'rx_blake2b_wrapper': no se encontró el id
+entificador [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\crypto\randomx\virtual_machine.cpp(101,3): error C2065: 'rx_blake2b_wrapper': identificador no dec
+larado [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\crypto\randomx\virtual_machine.cpp(111,17): error C3861: 'RandomX_generate_program': no se encontr
+ó el identificador [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\crypto\randomx\virtual_machine.cpp(111,17): error C2065: 'RandomX_generate_program': identificador
+ no declarado [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\crypto\randomx\jit_compiler_fallback.hpp(13,8): warning C4099: 'randomx::ProgramConfiguration': no
+mbre de tipo visto anteriormente usando 'struct' ahora se ve usando 'class' [C:\zartrux-miner\build\src\zartrux_libs.vc
+xproj]
+  (compilando archivo de origen "../../src/crypto/randomx/vm_compiled_light.cpp")
+      C:\zartrux-miner\src\crypto\randomx\program.hpp(12,9):
+      vea la declaración de 'randomx::ProgramConfiguration'
+
+C:\zartrux-miner\src\crypto\randomx\vm_compiled.cpp(8,53): error C3700: falta el elemento """ de fin en el nombre de ar
+chivo [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\crypto\randomx\vm_compiled.cpp(22,17): error C3861: 'RandomX_run': no se encontró el identificador
+ [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\crypto\randomx\vm_compiled.cpp(22,17): error C2065: 'RandomX_run': identificador no declarado [C:\
+zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\crypto\randomx\vm_compiled.cpp(34,17): error C3861: 'RandomX_JIT_execute': no se encontró el ident
+ificador [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\crypto\randomx\vm_compiled.cpp(34,17): error C2065: 'RandomX_JIT_execute': identificador no declar
+ado [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\crypto\randomx\jit_compiler_fallback.hpp(13,8): warning C4099: 'randomx::ProgramConfiguration': no
+mbre de tipo visto anteriormente usando 'struct' ahora se ve usando 'class' [C:\zartrux-miner\build\src\zartrux_libs.vc
+xproj]
+  (compilando archivo de origen "../../src/crypto/randomx/vm_interpreted.cpp")
+      C:\zartrux-miner\src\crypto\randomx\program.hpp(12,9):
+      vea la declaración de 'randomx::ProgramConfiguration'
+
+C:\zartrux-miner\src\crypto\randomx\vm_interpreted.cpp(26,22): warning C4458: la declaración de 'nreg' oculta el miembr
+o de clase [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\crypto\randomx\bytecode_machine.hpp(226,23):
+      vea la declaración de 'randomx::BytecodeMachine::nreg'
+      C:\zartrux-miner\src\crypto\randomx\vm_interpreted.cpp(26,22):
+      el contexto de creación de instancias de la plantilla (el más antiguo primero) es
+          C:\zartrux-miner\src\crypto\randomx\vm_interpreted.cpp(98,36):
+          Vea la referencia a la creación de una instancia de clase plantilla "randomx::InterpretedVm<1>" que se está c
+  ompilando
+          C:\zartrux-miner\src\crypto\randomx\vm_interpreted.cpp(24,41):
+          al compilar la función del miembro clase plantilla "void randomx::InterpretedVm<1>::execute(void)"
+              C:\zartrux-miner\src\crypto\randomx\vm_interpreted.cpp(20,10):
+              vea la primera referencia a “randomx::InterpretedVm<1>::execute” en “randomx::InterpretedVm<1>::run”
+
+C:\zartrux-miner\src\crypto\randomx\jit_compiler_fallback.hpp(13,8): warning C4099: 'randomx::ProgramConfiguration': no
+mbre de tipo visto anteriormente usando 'struct' ahora se ve usando 'class' [C:\zartrux-miner\build\src\zartrux_libs.vc
+xproj]
+  (compilando archivo de origen "../../src/crypto/randomx/vm_interpreted_light.cpp")
+      C:\zartrux-miner\src\crypto\randomx\program.hpp(12,9):
+      vea la declaración de 'randomx::ProgramConfiguration'
+
+C:\zartrux-miner\src\network\StratumClient.cpp(31,18): error C2039: "post": no es un miembro de "boost::asio::io_contex
+t" [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\build\vcpkg_installed\x64-windows\include\boost\asio\io_context.hpp(192,7):
+      vea la declaración de 'boost::asio::io_context'
+
+  Profiler.cpp
+  SystemMonitor.cpp
+  AESNonceEncryptor.cpp
+  ConfigSigner.cpp
+  Chrono.cpp
+C:\zartrux-miner\src\runtime\Profiler.cpp(25,10): warning C4189: 'cpuNameBuffer': la variable local se ha inicializado
+pero no se hace referencia a ella [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(47,22): error C2039: "m_mutex": no es un miembro de "zartrux::runtime::Profil
+er" [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\runtime\Profiler.h(38,7):
+      vea la declaración de 'zartrux::runtime::Profiler'
+
+C:\zartrux-miner\src\runtime\Profiler.cpp(48,6): error C2039: "map": no es un miembro de "std" [C:\zartrux-miner\build\
+src\zartrux_libs.vcxproj]
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\iostream(19,1):
+      vea la declaración de 'std'
+
+C:\zartrux-miner\src\runtime\Profiler.cpp(48,33): error C2039: "ProfileData": no es un miembro de "zartrux::runtime::Pr
+ofiler" [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\runtime\Profiler.h(38,7):
+      vea la declaración de 'zartrux::runtime::Profiler'
+
+C:\zartrux-miner\src\runtime\Profiler.cpp(48,33): error C2065: 'ProfileData': identificador no declarado [C:\zartrux-mi
+ner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(48,6): error C7568: falta la lista de argumentos después de la plantilla de f
+unción supuesta "map" [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(48,6): error C2062: tipo '<error type>' inesperado [C:\zartrux-miner\build\sr
+c\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(48,56): error C2039: "m_profiles": no es un miembro de "zartrux::runtime::Pro
+filer" [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\runtime\Profiler.h(38,7):
+      vea la declaración de 'zartrux::runtime::Profiler'
+
+C:\zartrux-miner\src\runtime\Profiler.cpp(50,16): error C2039: "start": no es un miembro de "zartrux::runtime::Profiler
+" [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\runtime\Profiler.h(38,7):
+      vea la declaración de 'zartrux::runtime::Profiler'
+
+C:\zartrux-miner\src\runtime\Profiler.cpp(52,5): error C2065: 'm_profiles': identificador no declarado [C:\zartrux-mine
+r\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(55,16): error C2039: "stop": no es un miembro de "zartrux::runtime::Profiler"
+ [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\runtime\Profiler.h(38,7):
+      vea la declaración de 'zartrux::runtime::Profiler'
+
+C:\zartrux-miner\src\runtime\Profiler.cpp(59,15): error C2065: 'm_profiles': identificador no declarado [C:\zartrux-min
+er\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(60,9): error C3536: 'it': no se puede usar antes de inicializarse [C:\zartrux
+-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(60,15): error C2065: 'm_profiles': identificador no declarado [C:\zartrux-min
+er\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(64,34): error C2672: 'std::chrono::duration_cast': no se encontró una función
+ sobrecargada que coincida [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\__msvc_chrono.hpp(87,19
+  ):
+      puede ser '_To std::chrono::duration_cast(const std::chrono::duration<_Rep,_Period> &) noexcept(<expr>)'
+
+C:\zartrux-miner\src\runtime\Profiler.cpp(65,34): error C3536: 'duration': no se puede usar antes de inicializarse [C:\
+zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(73,16): error C2039: "printReport": no es un miembro de "zartrux::runtime::Pr
+ofiler" [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\runtime\Profiler.h(38,7):
+      vea la declaración de 'zartrux::runtime::Profiler'
+
+C:\zartrux-miner\src\runtime\Profiler.cpp(79,29): error C2065: 'm_profiles': identificador no declarado [C:\zartrux-min
+er\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(79,22): error C2530: 'pair': se deben inicializar las referencias [C:\zartrux
+-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(79,22): error C3531: 'pair': un símbolo cuyo tipo contiene 'auto' debe tener
+un inicializador [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(79,27): error C2143: error de sintaxis: falta ';' delante de ':' [C:\zartrux-
+miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(79,39): error C2143: error de sintaxis: falta ';' delante de ')' [C:\zartrux-
+miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(80,26): error C2530: 'name': se deben inicializar las referencias [C:\zartrux
+-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(81,26): error C2530: 'data': se deben inicializar las referencias [C:\zartrux
+-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(83,13): error C3536: 'data': no se puede usar antes de inicializarse [C:\zart
+rux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(87,64): error C2672: 'std::min_element': no se encontró una función sobrecarg
+ada que coincida [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\xutility(7266,19):
+      puede ser '_FwdIt std::min_element(_ExPo &&,_FwdIt,_FwdIt) noexcept'
+          C:\zartrux-miner\src\runtime\Profiler.cpp(87,64):
+          "_FwdIt std::min_element(_ExPo &&,_FwdIt,_FwdIt) noexcept": espera 3 argumentos - 1 proporcionado
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\xutility(7258,19):
+      o       '_FwdIt std::min_element(_ExPo &&,_FwdIt,_FwdIt,_Pr) noexcept'
+          C:\zartrux-miner\src\runtime\Profiler.cpp(87,64):
+          "_FwdIt std::min_element(_ExPo &&,_FwdIt,_FwdIt,_Pr) noexcept": espera 4 argumentos - 1 proporcionado
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\xutility(7252,29):
+      o       '_FwdIt std::min_element(_FwdIt,_FwdIt)'
+          C:\zartrux-miner\src\runtime\Profiler.cpp(87,64):
+          "_FwdIt std::min_element(_FwdIt,_FwdIt)": espera 2 argumentos - 1 proporcionado
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\xutility(7244,29):
+      o       '_FwdIt std::min_element(_FwdIt,_FwdIt,_Pr)'
+          C:\zartrux-miner\src\runtime\Profiler.cpp(87,64):
+          "_FwdIt std::min_element(_FwdIt,_FwdIt,_Pr)": espera 3 argumentos - 1 proporcionado
+
+C:\zartrux-miner\src\runtime\Profiler.cpp(88,64): error C2672: 'std::max_element': no se encontró una función sobrecarg
+ada que coincida [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\xutility(7042,19):
+      puede ser '_FwdIt std::max_element(_ExPo &&,_FwdIt,_FwdIt) noexcept'
+          C:\zartrux-miner\src\runtime\Profiler.cpp(88,64):
+          "_FwdIt std::max_element(_ExPo &&,_FwdIt,_FwdIt) noexcept": espera 3 argumentos - 1 proporcionado
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\xutility(7034,19):
+      o       '_FwdIt std::max_element(_ExPo &&,_FwdIt,_FwdIt,_Pr) noexcept'
+          C:\zartrux-miner\src\runtime\Profiler.cpp(88,64):
+          "_FwdIt std::max_element(_ExPo &&,_FwdIt,_FwdIt,_Pr) noexcept": espera 4 argumentos - 1 proporcionado
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\xutility(7028,29):
+      o       '_FwdIt std::max_element(_FwdIt,_FwdIt)'
+          C:\zartrux-miner\src\runtime\Profiler.cpp(88,64):
+          "_FwdIt std::max_element(_FwdIt,_FwdIt)": espera 2 argumentos - 1 proporcionado
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\xutility(7020,29):
+      o       '_FwdIt std::max_element(_FwdIt,_FwdIt,_Pr)'
+          C:\zartrux-miner\src\runtime\Profiler.cpp(88,64):
+          "_FwdIt std::max_element(_FwdIt,_FwdIt,_Pr)": espera 3 argumentos - 1 proporcionado
+
+C:\zartrux-miner\src\runtime\Profiler.cpp(91,22): error C3536: 'name': no se puede usar antes de inicializarse [C:\zart
+rux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(102,1): error C2653: 'ScopeProfiler': no es un nombre de clase o espacio de n
+ombres [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(102,16): error C4430: falta el especificador de tipo; se presupone int. Nota:
+ C++ no admite default-int [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(102,70): error C2550: 'zartrux::runtime::ScopeProfiler': las listas de inicia
+lizadores de constructor solo se permiten en las definiciones de constructor [C:\zartrux-miner\build\src\zartrux_libs.v
+cxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(103,15): error C2039: "start": no es un miembro de "zartrux::runtime::Profile
+r" [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\runtime\Profiler.h(38,7):
+      vea la declaración de 'zartrux::runtime::Profiler'
+
+C:\zartrux-miner\src\runtime\Profiler.cpp(103,21): error C2065: 'm_name': identificador no declarado [C:\zartrux-miner\
+build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(104,1): warning C4508: 'zartrux::runtime::ScopeProfiler': la función debe dev
+olver un valor; se supone que el tipo de valor devuelto es 'void' [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(106,1): error C2653: 'ScopeProfiler': no es un nombre de clase o espacio de n
+ombres [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(106,17): error C4430: falta el especificador de tipo; se presupone int. Nota:
+ C++ no admite default-int [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(107,15): error C2039: "stop": no es un miembro de "zartrux::runtime::Profiler
+" [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\runtime\Profiler.h(38,7):
+      vea la declaración de 'zartrux::runtime::Profiler'
+
+C:\zartrux-miner\src\runtime\Profiler.cpp(107,20): error C2065: 'm_name': identificador no declarado [C:\zartrux-miner\
+build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(108,1): warning C4508: 'zartrux::runtime::{dtor}': la función debe devolver u
+n valor; se supone que el tipo de valor devuelto es 'void' [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(112,16): error C3083: 'PerformanceResult': el símbolo situado a la izquierda
+de '::' debe ser un tipo [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(112,35): error C2039: "print": no es un miembro de "zartrux::runtime::Profile
+r" [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\runtime\Profiler.h(38,7):
+      vea la declaración de 'zartrux::runtime::Profiler'
+
+C:\zartrux-miner\src\runtime\Profiler.cpp(112,35): error C2270: 'print': modificadores no permitidos en funciones que n
+o sean miembro [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(113,58): error C2065: 'iterations': identificador no declarado [C:\zartrux-mi
+ner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(114,62): error C2065: 'totalTime': identificador no declarado [C:\zartrux-min
+er\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(115,59): error C2065: 'hashesPerSec': identificador no declarado [C:\zartrux-
+miner\build\src\zartrux_libs.vcxproj]
+  Logger.cpp
+  StatusExporter.cpp
+C:\zartrux-miner\src\runtime\Profiler.cpp(117,9): error C2065: 'avgLatency': identificador no declarado [C:\zartrux-min
+er\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(118,9): error C2065: 'minLatency': identificador no declarado [C:\zartrux-min
+er\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(119,9): error C2065: 'maxLatency': identificador no declarado [C:\zartrux-min
+er\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(126,11): error C2039: "PerformanceResult": no es un miembro de "zartrux::runt
+ime::Profiler" [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\runtime\Profiler.h(38,7):
+      vea la declaración de 'zartrux::runtime::Profiler'
+
+C:\zartrux-miner\src\runtime\Profiler.cpp(126,59): error C2039: "run": no es un miembro de "zartrux::runtime::Profiler:
+:PerformanceMonitor" [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+      C:\zartrux-miner\src\runtime\Profiler.h(76,11):
+      vea la declaración de 'zartrux::runtime::Profiler::PerformanceMonitor'
+
+C:\zartrux-miner\src\runtime\Profiler.cpp(126,11): error C4430: falta el especificador de tipo; se presupone int. Nota:
+ C++ no admite default-int [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(126,59): error C2146: error de sintaxis: falta ';' delante del identificador
+'run' [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(126,68): error C2039: "function": no es un miembro de "std" [C:\zartrux-miner
+\build\src\zartrux_libs.vcxproj]
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\iostream(19,1):
+      vea la declaración de 'std'
+
+C:\zartrux-miner\src\runtime\Profiler.cpp(126,121): error C2143: error de sintaxis: falta ';' delante de '{' [C:\zartru
+x-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(126,121): error C2447: '{': falta el encabezado de función (¿lista formal de
+estilo anterior?) [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(170,25): error C2589: '(': símbolo (token) no válido en el lado derecho de ':
+:' [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(170,25): error C2059: error de sintaxis: ')' [C:\zartrux-miner\build\src\zart
+rux_libs.vcxproj]
+C:\zartrux-miner\src\runtime\Profiler.cpp(176,25): error C2589: '(': símbolo (token) no válido en el lado derecho de ':
+:' [C:\zartrux-miner\build\src\zartrux_libs.vcxproj]
+  config_manager.cpp
+C:\zartrux-miner\src\runtime\Profiler.cpp(176,25): error C2059: error de sintaxis: ')' [C:\zartrux-miner\build\src\zart
+rux_libs.vcxproj]
+  nonce_logger_adapter.cpp
+C:\zartrux-miner\build\vcpkg_installed\x64-windows\include\pybind11\pybind11.h(244,40): error C2338: static_assert fail
+ed: 'The number of argument annotations does not match the number of function arguments' [C:\zartrux-miner\build\src\za
+rtrux_libs.vcxproj]
+  (compilando archivo de origen "../../src/utils/nonce_logger_adapter.cpp")
+      C:\zartrux-miner\build\vcpkg_installed\x64-windows\include\pybind11\pybind11.h(244,40):
+      el contexto de creación de instancias de la plantilla (el más antiguo primero) es
+          C:\zartrux-miner\src\utils\nonce_logger_adapter.cpp(184,10):
+          Vea la referencia a la creación de una instancia de la función plantilla "pybind11::class_<NonceLoggerAdapter
+  > &pybind11::class_<NonceLoggerAdapter>::def_static<void(__cdecl *)(const std::string &,bool,size_t),pybind11::doc,py
+  bind11::arg_v>(const char *,Func &&,const pybind11::doc &,const pybind11::arg_v &)" que se está compilando
+          with
+          [
+              Func=void (__cdecl *)(const std::string &,bool,size_t)
+          ]
+              C:\zartrux-miner\src\utils\nonce_logger_adapter.cpp(184,20):
+              vea la primera referencia a “pybind11::class_<NonceLoggerAdapter>::def_static” en “pybind11_init_nonce_ad
+  apter”
+          C:\zartrux-miner\build\vcpkg_installed\x64-windows\include\pybind11\pybind11.h(1634,24):
+          Vea la referencia a la creación de una instancia de la función plantilla "pybind11::cpp_function::cpp_functio
+  n<void,const std::string&,bool,size_t,pybind11::name,pybind11::scope,pybind11::sibling,pybind11::doc,pybind11::arg_v>
+  (Return (__cdecl *)(const std::string &,bool,size_t),const pybind11::name &,const pybind11::scope &,const pybind11::s
+  ibling &,const pybind11::doc &,const pybind11::arg_v &)" que se está compilando
+          with
+          [
+              Return=void
+          ]
+          C:\zartrux-miner\build\vcpkg_installed\x64-windows\include\pybind11\pybind11.h(118,9):
+          Vea la referencia a la creación de una instancia de la función plantilla "void pybind11::cpp_function::initia
+  lize<Return(__cdecl *&)(const std::string &,bool,size_t),Return,const std::string&,bool,size_t,pybind11::name,pybind1
+  1::scope,pybind11::sibling,pybind11::doc,pybind11::arg_v>(Func,Return (__cdecl *)(const std::string &,bool,size_t),co
+  nst pybind11::name &,const pybind11::scope &,const pybind11::sibling &,const pybind11::doc &,const pybind11::arg_v &)
+  " que se está compilando
+          with
+          [
+              Return=void,
+              Func=void (__cdecl *&)(const std::string &,bool,size_t)
+          ]
