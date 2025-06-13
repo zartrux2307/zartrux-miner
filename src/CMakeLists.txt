@@ -40,9 +40,10 @@ target_link_libraries(zartrux_libs PUBLIC
     cpr::cpr fmt::fmt
      yaml-cpp
     Qt::Core Qt::Widgets
+   Boost::boost Boost::system
 )
 # (Otras definiciones como ZARTRUX_FEATURE_ASM se quedan igual)
-
+add_definitions(-D_WIN32_WINNT=0x0601)
 
 # --- MÓDULO DE PYTHON (EL PUENTE) ---
 # Se crea el módulo de enlace (.pyd/.so) usando la función de pybind11.
