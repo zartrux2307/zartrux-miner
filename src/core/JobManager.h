@@ -1,103 +1,79 @@
 #pragma once
 
 #include <vector>
-#include <deque>
-#include <mutex>
-#include <atomic>
-#include <condition_variable>
-#include <cstdint>
 #include <string>
-#include <thread>
-#include <fstream>
-#include <array>
-
-#include "core/SmartCache.h"
-#include "core/NonceValidator.h"
-#include "core/ia/IAReceiver.h"
-#include "runtime/Profiler.h"
+#include <mutex>
+#include <queue>
+#include <condition_variable>
+#include <atomic>
 #include "utils/StatusExporter.h"
 
-// Estructura para almacenar la información de un trabajo de minería.
-struct MiningJob {
-    std::string id;
-    std::string blob;
-    std::string target;
-    std::array<uint8_t, 32> targetBin; // Target convertido a binario para comparaciones rápidas
-    uint64_t height = 0;
-};
-
-// Estructura para los nonces, anotados con la confianza de la IA.
-struct AnnotatedNonce {
-    uint64_t value;
-    float confidence = 1.0f; // 1.0 para nonces de CPU, < 1.0 para nonces de IA
-    uint64_t timestamp;
-};
-
-/**
- * @class JobManager
- * @brief Orquesta la distribución de trabajo a los hilos mineros,
- * gestionando las colas de nonces (CPU vs IA) y los resultados.
- */
 class JobManager {
 public:
-    static JobManager& getInstance();
+    static constexpr size_t MAX_QUEUE_SIZE = 1000;
+    static constexpr size_t LOG_ROTATE_EVERY = 100;
 
-    JobManager(const JobManager&) = delete;
-    JobManager& operator=(const JobManager&) = delete;
+    struct Job {
+        std::vector<uint8_t> blob;
+        std::string jobId;
+        uint64_t target;
+        uint32_t height;
+    };
 
-    // --- Interfaz Pública ---
+    struct Nonce {
+        uint32_t value;
+        std::string jobId;
+    };
 
-    // Configuración
-    void setAIContribution(float ratio);
-    float getAIContribution() const;
-
-    // Gestión de Trabajos
-    void setNewJob(const MiningJob& newJob);
-    std::vector<AnnotatedNonce> getWorkBatch(size_t workerId, size_t maxNonces);
-    
-    // Inyección y Procesamiento de Nonces
-    void injectIANonces(const std::vector<uint64_t>& nonces);
-    void submitValidNonce(uint64_t nonce, const std::string& hash);
-
-    // Obtención de datos del trabajo actual (para los hilos)
-    std::vector<uint8_t> getCurrentBlob() const;
-    const std::array<uint8_t, 32>& getCurrentTarget() const;
-    bool hasActiveJob() const;
-
-    // Sincronización eficiente con los hilos
-    bool isWorkQueueEmpty();
-    std::mutex& getMutex();
-    std::condition_variable& getConditionVariable();
-    
-    void shutdown();
-
-private:
     JobManager();
     ~JobManager();
 
-    // --- Métodos Internos ---
-    void fetchIANoncesBackground();
-    void processValidationResults(const std::vector<uint64_t>& nonces, const std::vector<bool>& results);
-    std::vector<AnnotatedNonce> generateCpuNonces(size_t count);
+    void start();
+    void stop();
 
-    // Miembros
+    // Getters
+    std::vector<uint8_t> getCurrentBlob() const;
+    uint64_t getCurrentTarget() const;
+    std::string getCurrentJobId() const;
+    uint32_t getCurrentHeight() const;
+
+    // Job management
+    void setJob(const std::vector<uint8_t>& blob, const std::string& jobId, uint64_t target, uint32_t height);
+    void submitNonce(uint32_t nonce);
+
+    // AI/IA related functions
+    void setAIContribution(float contribution);
+    float getAIContribution() const;
+    void setIAEndpoint(const std::string& endpoint);
+    std::string getIAEndpoint() const;
+    void injectIANonces(const std::vector<uint32_t>& nonces);
+    void processNonces();
+
+private:
+    void loadCheckpoint();
+    void saveCheckpoint();
+    void submitValidNonce(uint32_t nonce, const std::string& jobId);
+    void fetchIANoncesBackground();
+
     mutable std::mutex m_mutex;
     std::condition_variable m_cv;
-    std::atomic<bool> m_shutdown{false};
 
-    MiningJob m_currentJob;
-    std::atomic<bool> m_job_available{false};
-    
-    std::deque<AnnotatedNonce> m_cpuQueue;
-    std::deque<AnnotatedNonce> m_iaQueue;
+    // Current job data
+    Job m_currentJob;
+    std::atomic<bool> m_running{false};
 
-    std::atomic<float> m_aiContribution{0.5f};
-    
-    // Contadores y métricas
-    std::atomic<size_t> m_validNonces{0};
-    std::atomic<size_t> m_processedCount{0};
+    // Queues and counters
+    std::queue<Nonce> m_cpuQueue;
+    std::queue<Nonce> m_iaQueue;
+    std::atomic<uint64_t> m_processedCount{0};
+    std::atomic<uint64_t> m_validNonces{0};
+    std::atomic<uint64_t> m_validNoncesSinceLog{0};
+    std::atomic<uint64_t> m_iaContributed{0};
 
-    // Hilo para la comunicación con la IA
-    std::thread m_iaFetchThread;
-    static constexpr auto IA_FETCH_INTERVAL = std::chrono::seconds(2);
+    // IA/AI configuration
+    std::string m_iaEndpoint;
+    float m_aiContribution{0.0f};
+
+    // Status exporter
+    StatusExporter m_statusExporter;
 };
